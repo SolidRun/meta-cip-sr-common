@@ -1,0 +1,13 @@
+[Unit]
+Description=Wirepas Transport Process
+Requires=network.target
+
+[Service]
+Type=simple
+User=solidsense
+ExecStart=/usr/bin/python3 /data/solidsense/grpc/grpc_service.py --settings=/data/solidsense/wirepas/wirepasMicro.service.cfg
+Restart=always
+RestartSec=6
+
+[Install]
+WantedBy=multi-user.target

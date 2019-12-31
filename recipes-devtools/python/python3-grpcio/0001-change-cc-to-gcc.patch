@@ -1,0 +1,22 @@
+From d5f08594423acfde0594b75e3aaf3c78af2eb788 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Mon, 28 Oct 2019 17:21:17 -0400
+Subject: [PATCH] change 'cc' to 'gcc'
+
+---
+ src/python/grpcio/commands.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/python/grpcio/commands.py b/src/python/grpcio/commands.py
+index d189c28..80b3748 100644
+--- a/src/python/grpcio/commands.py
++++ b/src/python/grpcio/commands.py
+@@ -218,7 +218,7 @@ class BuildExt(build_ext.build_ext):
+             when invoked in C mode. GCC is okay with this, while clang is not.
+             """
+             cc_test = subprocess.Popen(
+-                ['cc', '-x', 'c', '-std=c++11', '-'],
++                ['gcc', '-x', 'c', '-std=c++11', '-'],
+                 stdin=subprocess.PIPE,
+                 stdout=subprocess.PIPE,
+                 stderr=subprocess.PIPE)

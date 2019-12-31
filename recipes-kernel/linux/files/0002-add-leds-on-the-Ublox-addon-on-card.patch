@@ -1,0 +1,62 @@
+From 23099d74752bd6f2f8ac12a5df74a220042c5d26 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Fri, 27 Dec 2019 13:41:24 -0500
+Subject: [PATCH] add leds on the Ublox addon on card
+
+---
+ arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi | 29 +++++++++++++++++---
+ 1 file changed, 25 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi b/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
+index 6a4b0f97ea27..d21b217a7cfc 100644
+--- a/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
+@@ -158,6 +158,27 @@
+ 		ssi-controller = <&ssi1>;
+ 		status = "disabled";
+ 	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		red1 {
++			label = "red1";
++			gpios = <&gpio2 26 GPIO_ACTIVE_LOW>;
++		};
++		green1 {
++			label = "green1";
++			gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
++		};
++		red2 {
++			label = "red2";
++			gpios = <&gpio2 25 GPIO_ACTIVE_LOW>;
++		};
++		green2 {
++			label = "green2";
++			gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
++		};
++	};
+ };
+ 
+ &audmux {
+@@ -321,16 +342,16 @@
+ 				/* MikroBUS GPIO pin number 2 */
+ 				MX6QDL_PAD_GPIO_9__GPIO1_IO09 0x400130b1
+ 
+-				/* Red LED 1 - GPIO 57*/
++				/* Red LED 2 - GPIO 57*/
+ 				/* MikroBUS GPIO pin number 3 */
+ 				MX6QDL_PAD_EIM_OE__GPIO2_IO25 0x400130b1
+-				/* Green LED 1 - GPIO 56*/
++				/* Green LED 2 - GPIO 56*/
+ 				/* MikroBUS GPIO pin number 4 */
+ 				MX6QDL_PAD_EIM_CS1__GPIO2_IO24 0x400130b1
+-				/* Red LED 2 - GPIO 55 */
++				/* Green LED 1 - GPIO 55 */
+ 				/* MikroBUS GPIO pin number 5 */
+ 				MX6QDL_PAD_EIM_CS0__GPIO2_IO23 0x400130b1
+-				/* Green LED 1 - GPIO 58 */
++				/* Red LED 1 - GPIO 58 */
+ 				/* MikroBUS GPIO pin number 6 */
+ 				MX6QDL_PAD_EIM_RW__GPIO2_IO26 0x400130b1
+ 

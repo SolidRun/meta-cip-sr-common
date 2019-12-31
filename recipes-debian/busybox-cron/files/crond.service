@@ -1,0 +1,9 @@
+[Unit]
+Description=busybox cron service
+DefaultDependencies=no
+
+[Service]
+ExecStart=/usr/sbin/crond -f -c /etc/cron/crontabs
+
+[Install]
+WantedBy=multi-user.target

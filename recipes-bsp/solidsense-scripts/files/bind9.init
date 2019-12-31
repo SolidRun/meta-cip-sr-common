@@ -1,0 +1,28 @@
+#!/bin/sh -e
+
+case "${1}" in
+	start)
+		systemctl start named.service
+	;;
+
+	stop)
+		systemctl stop named.service
+	;;
+
+	reload|force-reload)
+		/usr/sbin/rndc reload >/dev/null
+	;;
+
+	restart)
+		systemctl restart named.service
+	;;
+
+	status)
+	;;
+
+	*)
+		exit 1
+	;;
+esac
+
+exit 0

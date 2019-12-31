@@ -1,0 +1,12 @@
+[Unit]
+Description=Wirepas sink configurator
+Requires=getty.target
+
+[Service]
+Type=oneshot
+User=solidsense
+ExecStart=/usr/bin/python3 /data/solidsense/wirepas/configure_node.py @/data/solidsense/wirepas/wirepasSinkConfig.service.cfg
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

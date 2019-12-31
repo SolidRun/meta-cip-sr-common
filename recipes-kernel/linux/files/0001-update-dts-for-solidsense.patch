@@ -1,0 +1,184 @@
+From efa0335f4f413dfabbd4ba6f127c51851d499913 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Thu, 12 Sep 2019 11:49:47 -0400
+Subject: [PATCH] update dts for solidsense
+
+---
+ arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi | 61 ++++++++++++++++++--
+ arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi     |  2 +
+ 2 files changed, 58 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi b/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
+index edadcf14ea21..6a4b0f97ea27 100644
+--- a/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
+@@ -156,6 +156,7 @@
+ 		mux-ext-port = <5>;
+ 		mux-int-port = <1>;
+ 		ssi-controller = <&ssi1>;
++		status = "disabled";
+ 	};
+ };
+ 
+@@ -163,12 +164,14 @@
+ 	status = "okay";
+ };
+ 
++#if 0
+ &ecspi2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hummingboard2_ecspi2>;
+ 	cs-gpios = <&gpio2 26 0>;
+-	status = "okay";
++	status = "disabled";
+ };
++#endif
+ 
+ &hdmi {
+ 	pinctrl-names = "default";
+@@ -197,6 +200,7 @@
+ 		VDDA-supply = <&v_3v2>;
+ 		VDDD-supply = <&vcc_1p8>;
+ 		VDDIO-supply = <&v_3v2>;
++		status = "disabled";
+ 	};
+ };
+ 
+@@ -207,12 +211,14 @@
+ 	status = "okay";
+ };
+ 
++#if 0
+ &i2c3 {
+ 	clock-frequency = <100000>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hummingboard2_i2c3>;
+-	status = "okay";
++	status = "disabled";
+ };
++#endif
+ 
+ &iomuxc {
+ 	pinctrl-names = "default";
+@@ -312,11 +318,38 @@
+ 				/* SPDIF_OUT */
+ 				MX6QDL_PAD_GPIO_17__GPIO7_IO12 0x400130b1
+ 
++				/* MikroBUS GPIO pin number 2 */
++				MX6QDL_PAD_GPIO_9__GPIO1_IO09 0x400130b1
++
++				/* Red LED 1 - GPIO 57*/
++				/* MikroBUS GPIO pin number 3 */
++				MX6QDL_PAD_EIM_OE__GPIO2_IO25 0x400130b1
++				/* Green LED 1 - GPIO 56*/
++				/* MikroBUS GPIO pin number 4 */
++				MX6QDL_PAD_EIM_CS1__GPIO2_IO24 0x400130b1
++				/* Red LED 2 - GPIO 55 */
++				/* MikroBUS GPIO pin number 5 */
++				MX6QDL_PAD_EIM_CS0__GPIO2_IO23 0x400130b1
++				/* Green LED 1 - GPIO 58 */
++				/* MikroBUS GPIO pin number 6 */
++				MX6QDL_PAD_EIM_RW__GPIO2_IO26 0x400130b1
++
++				/* Nordic Chip 1 SWDIO - GPIO 125 */
++				/* MikroBUS GPIO pin number 9 */
++				MX6QDL_PAD_DISP0_DAT8__GPIO4_IO29 0x400130b1
++				/* Nordic Chip 1 SWDCLK - GPIO 59 */
+ 				/* MikroBUS GPIO pin number 10 */
+ 				MX6QDL_PAD_EIM_LBA__GPIO2_IO27 0x400130b1
++				/* Nordic Chip 2 SWDIO - GPIO 81 */
++				/* MikroBUS GPIO pin number 13 */
++				MX6QDL_PAD_EIM_D17__GPIO3_IO17 0x400130b1
++				/* Nordic Chip 2 SWCLK - GPIO 82 */
++				/* MikroBUS GPIO pin number 14 */
++				MX6QDL_PAD_EIM_D18__GPIO3_IO18 0x400130b1
+ 			>;
+ 		};
+ 
++#if 0
+ 		pinctrl_hummingboard2_ecspi2: hummingboard2-ecspi2grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_EIM_OE__ECSPI2_MISO	0x100b1
+@@ -325,6 +358,7 @@
+ 				MX6QDL_PAD_EIM_RW__GPIO2_IO26	0x000b1 /* CS */
+ 			>;
+ 		};
++#endif
+ 
+ 		pinctrl_hummingboard2_gpio7_9: hummingboard2-gpio7_9 {
+ 			fsl,pins = <
+@@ -352,12 +386,14 @@
+ 			>;
+ 		};
+ 
++#if 0
+ 		pinctrl_hummingboard2_i2c3: hummingboard2-i2c3 {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_EIM_D17__I2C3_SCL 0x4001b8b1
+ 				MX6QDL_PAD_EIM_D18__I2C3_SDA 0x4001b8b1
+ 			>;
+ 		};
++#endif
+ 
+ 		pinctrl_hummingboard2_mipi: hummingboard2_mipi {
+ 			fsl,pins = <
+@@ -465,10 +501,17 @@
+ 			>;
+ 		};
+ 
++		pinctrl_hummingboard2_uart2: hummingboard2-uart2 {
++			fsl,pins = <
++				MX6QDL_PAD_SD4_DAT7__UART2_TX_DATA	0x1b0b1
++				MX6QDL_PAD_SD4_DAT4__UART2_RX_DATA	0x1b0b1
++			>;
++		};
++
+ 		pinctrl_hummingboard2_uart3: hummingboard2-uart3 {
+ 			fsl,pins = <
+-				MX6QDL_PAD_EIM_D25__UART3_TX_DATA	0x1b0b1
+-				MX6QDL_PAD_EIM_D24__UART3_RX_DATA	0x40013000
++				MX6QDL_PAD_EIM_D24__UART3_TX_DATA	0x1b0b1
++				MX6QDL_PAD_EIM_D25__UART3_RX_DATA	0x1b0b1
+ 			>;
+ 		};
+ 	};
+@@ -484,7 +527,7 @@
+ &pwm1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hummingboard2_pwm1>;
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &pwm3 {
+@@ -529,9 +572,17 @@
+ 	status = "okay";
+ };
+ 
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_hummingboard2_uart2>;
++	status = "okay";
++};
++
++
+ &uart3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hummingboard2_uart3>;
++	speed = <115200>;
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi b/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi
+index 44a97ba93a95..7953c4728e2f 100644
+--- a/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi
+@@ -143,6 +143,8 @@
+ 		enable-gpios = <&gpio6 0 GPIO_ACTIVE_HIGH>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pinctrl_microsom_ti_bt>;
++		current-speed = <115200>;
++		max-speed = <3000000>;
+ 	};
+ };
+ 

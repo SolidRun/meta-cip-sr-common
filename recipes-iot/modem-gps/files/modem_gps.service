@@ -1,0 +1,16 @@
+[Unit]
+Description=Modem management and GPS micro service for SolidSense
+Requires=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 /opt/SolidSense/modem_gps/Modem_GPS_Service.py
+Restart=on-failure
+SuccessExitStatus=0
+RestartForceExitStatus=2
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

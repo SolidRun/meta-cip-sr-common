@@ -1,0 +1,13 @@
+[Unit]
+Description=Wirepas sink manager for sink connected to /dev/ttymxc1
+Requires=getty.target
+
+[Service]
+Type=simple
+User=solidsense
+ExecStart=/data/solidsense/wirepas/sinkService -b 125000 -p /dev/ttymxc1 -i 1
+Restart=always
+RestartSec=6
+
+[Install]
+WantedBy=multi-user.target

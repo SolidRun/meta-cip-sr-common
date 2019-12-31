@@ -1,0 +1,21 @@
+From df0a40cafd0aac807bc917db364bb1723e4696c9 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Thu, 26 Sep 2019 12:06:32 -0400
+Subject: [PATCH] add MBean permission
+
+---
+ jdk/src/share/lib/security/java.policy | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/jdk/src/share/lib/security/java.policy b/jdk/src/share/lib/security/java.policy
+index 120694d6..72129af1 100644
+--- a/jdk/src/share/lib/security/java.policy
++++ b/jdk/src/share/lib/security/java.policy
+@@ -45,5 +45,7 @@ grant {
+         permission java.util.PropertyPermission "java.vm.version", "read";
+         permission java.util.PropertyPermission "java.vm.vendor", "read";
+         permission java.util.PropertyPermission "java.vm.name", "read";
++
++	permission javax.management.MBeanTrustPermission "register";
+ };
+ 

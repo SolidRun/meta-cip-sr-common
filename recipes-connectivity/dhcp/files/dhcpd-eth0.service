@@ -1,0 +1,11 @@
+[Unit]
+Description=DHCPv4 Server Daemon
+Documentation=man:dhcpd(8) man:dhcpd.conf(5)
+
+[Service]
+PIDFile=/run/dhcpd-eth0.pid
+ExecStartPre=/bin/touch /var/lib/dhcp/dhcpd.leases
+ExecStart=/usr/sbin/dhcpd -f -cf /etc/dhcpd-eth0.conf -pf /run/dhcpd-eth0.pid $DHCPDARGS -q eth0
+
+[Install]
+WantedBy=multi-user.target
