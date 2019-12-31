@@ -1,0 +1,25 @@
+From 17ddf9bd171ec6b827435766ed4640301284934d Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Mon, 30 Dec 2019 19:10:47 -0500
+Subject: [PATCH] change 'utmp' to '43'
+
+---
+ recipes-debian/base-files/base-files_debian.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-debian/base-files/base-files_debian.bb b/recipes-debian/base-files/base-files_debian.bb
+index 2468a750..37713534 100644
+--- a/recipes-debian/base-files/base-files_debian.bb
++++ b/recipes-debian/base-files/base-files_debian.bb
+@@ -74,7 +74,7 @@ do_install() {
+ pkg_postinst_${PN}() {
+ 	for i in log/wtmp log/btmp log/lastlog run/utmp; do
+ 		test -f $D${localstatedir}/$i || echo -n > $D${localstatedir}/$i
+-		chown root:utmp $D${localstatedir}/$i
++		chown root:43 $D${localstatedir}/$i
+ 		chmod 664 $D${localstatedir}/$i
+ 	done
+ 	chmod 660 $D${localstatedir}/log/btmp
+-- 
+2.20.1
+

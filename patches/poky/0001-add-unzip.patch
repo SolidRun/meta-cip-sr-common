@@ -1,0 +1,25 @@
+From 9c222e514c199d2c28f1254b279e122190ad489c Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Mon, 30 Dec 2019 16:22:20 -0500
+Subject: [PATCH] add unzip
+
+---
+ meta/conf/bitbake.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta/conf/bitbake.conf b/meta/conf/bitbake.conf
+index c996301a8b..b9998c8377 100644
+--- a/meta/conf/bitbake.conf
++++ b/meta/conf/bitbake.conf
+@@ -496,7 +496,7 @@ HOSTTOOLS += " \
+     mktemp mv nm objcopy objdump od patch perl pod2man pr printf pwd python2 \
+     python2.7 python3 ranlib readelf readlink realpath rm rmdir rpcgen sed seq sh sha256sum \
+     sleep sort split stat strings strip tail tar tee test touch tr true uname \
+-    uniq wc wget which xargs \
++    uniq unzip wc wget which xargs \
+ "
+ 
+ # Tools needed to run testimage runtime image testing
+-- 
+2.20.1
+
