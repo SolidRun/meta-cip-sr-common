@@ -1,0 +1,171 @@
+#!/bin/sh
+
+# Commands
+DATE="$(command -vp date)"
+
+# Global variables
+PROG_NAME="$(basename "${0}")"
+HARDWARE_ALL=" \
+	n6gq \
+	n6gsdl \
+	solidsense \
+"
+IMAGE_SUFFIX=" \
+	mender \
+	mender.bmap \
+	tar.gz \
+"
+DEVICES="${HARDWARE_ALL}"
+PRODUCT="Solidsense"
+RELEASE="dev"
+RELEASE_DATE="$("${DATE}" "+%Y%m%d")"
+ITERATION="00"
+
+# Pretty print
+NC="\\e[0m"
+BOLD="\\e[1m"
+#BLINK="\\e[5m"
+UNDERLINED="\\e[4m"
+RED="\\e[31m"
+YELLOW="\\e[33m"
+LIGHT_RED="\\e[91m"
+LIGHT_GREEN="\\e[92m"
+
+# functions
+usage () {
+	echo "${PROG_NAME}:"
+	echo "    -H|--hardware <hardware type>		:default is <all>"
+	echo "    -p|--product <product>			:default is <Solidsense>"
+	echo "    -r|--release <release version>		:default is <dev>"
+	echo "    -d|--date <date>				:default is <$("${DATE}" "+%Y%m%d")>"
+	echo "    -i|--iteration <iteration>			:default is <00>"
+	echo "    -h|--help"
+	echo ""
+	exit 1
+}
+
+calc_duration () {
+	time_start="${1}"
+	time_end="${2}"
+
+	echo $((time_end-time_start)) | awk '{printf("%02d:%02d:%02d\n", int($1/3600), int($1/60%60), int($1%60))}'
+}
+
+do_build () {
+	if [ ! -d "deploy/logs/${VERSION}" ]; then
+		mkdir -p "deploy/logs/${VERSION}"
+	fi
+	printf "\\nBuilding version ${LIGHT_GREEN}%s${NC}\\n" "${VERSION}"
+	for device in ${DEVICES}; do
+		START="$(${DATE} +%s)"
+		log="deploy/logs/${VERSION}/build-${device}-$(${DATE} +%Y%m%d-%H:%M)"
+		# Build using KAS
+		printf "    ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
+			"${device}" \
+			"${log}"
+		MENDER_ARTIFACT_NAME="${VERSION}" \
+			kas build kas-solidsense.yml:meta-cip-sr-"${device}"/kas-"${device}".yml > "${log}" 2>&1
+		END="$(${DATE} +%s)"
+		duration="$(calc_duration "${START}" "${END}")"
+		printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+	done
+	printf "\\n"
+}
+
+do_deploy_images () {
+	if [ ! -d "deploy/${VERSION}" ]; then
+		mkdir -p "deploy/${VERSION}"
+	fi
+	printf "Copying over images for${LIGHT_RED}%s${NC}\\n"
+	for device in ${DEVICES}; do
+		dir_deploy="deploy/${VERSION}"
+		image_prefix_src="build/tmp/deploy/images/${device}/core-image-minimal-${device}"
+		image_prefix_dst="${dir_deploy}/${device}-core-image-minimal-${VERSION}"
+
+		if [ ! -d "${dir_deploy}" ]; then
+			mkdir -p "${dir_deploy}"
+		fi
+
+		# Copy over images
+		printf "    ${RED}%s${NC}" "${device}"
+		START="$(${DATE} +%s)"
+		for suffix in ${IMAGE_SUFFIX}; do
+			if [ -f "${image_prefix_src}.${suffix}" ]; then
+				cp "${image_prefix_src}.${suffix}" "${image_prefix_dst}.${suffix}"
+			fi
+		done
+		END="$(${DATE} +%s)"
+		duration="$(calc_duration "${START}" "${END}")"
+		printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+	done
+	printf "\\n"
+}
+
+# main
+
+options=$(getopt -l "help,hardware:,product:,release:,date:,iteration:" -o "hH:p:r:d:i:" -- "${@}")
+eval set -- "${options}"
+
+while true
+do
+	case "${1}" in
+		-h|--help )
+			shift
+			usage
+			;;
+		-H|--hardware )
+			shift
+			if [ "${1}" = "all" ]; then
+				DEVICES="${HARDWARE_ALL}"
+			else
+				DEVICES=$(echo "${1}" | sed 's/,/ /g')
+			fi
+			;;
+		-p|--product )
+			shift
+			PRODUCT="${1}"
+			;;
+		-r|--release )
+			shift
+			RELEASE="${1}"
+			;;
+		-d|--date )
+			shift
+			RELEASE_DATE="${1}"
+			;;
+		-i|--iteration )
+			shift
+			ITERATION="${1}"
+			;;
+		\? )
+			usage
+			;;
+		: )
+			echo "Invalid option: ${OPTARG} requires an argument" 1>&2
+			;;
+		-- )
+			shift
+			break
+			;;
+		* )
+			usage
+			;;
+	esac
+	shift
+done
+
+if [ "${#}" -ne "0" ]; then
+	usage
+else
+	if [ ! -d "meta-cip-sr-common" ]; then
+		echo "Cannot find meta-cip-sr-common"
+		exit 1
+	fi
+	FULL_START="$(${DATE} +%s)"
+	VERSION="${PRODUCT}-${RELEASE}-${RELEASE_DATE}${ITERATION}"
+	do_build
+	do_deploy_images
+	FULL_END="$(${DATE} +%s)"
+	duration="$(calc_duration "${FULL_START}" "${FULL_END}")"
+	printf "That entire run took ${BOLD}${UNDERLINED}%s${NC}.\\n\\n" "${duration}"
+fi
