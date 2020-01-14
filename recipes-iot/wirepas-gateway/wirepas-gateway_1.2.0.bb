@@ -9,12 +9,13 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://github.com/wirepas/gateway;rev=v1.2.0 \
     git://github.com/wirepas/c-mesh-api;rev=v1.2.0;destsuffix=git/sink_service/c-mesh-api \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.911;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "25052bbc277a0b690fec8c94512c0c005b9ac1aa"
+SRCREV_SolidSense-V1 = "37ca2156a9e48e767db20b8fd75f950c7f06c702"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
+KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
 
 DEPENDS = " \
     python3-native \
@@ -52,7 +53,7 @@ WIREPAS_GATEWAY_INSTALL_ARGS = " \
 "
 
 SYSTEMD_SERVICE_${PN} = "wirepasSink1.service wirepasSink2.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "enable"
+SYSTEMD_AUTO_ENABLE_${PN} = "disable"
 
 inherit python3native python3-dir setuptools3 systemd
 
@@ -120,9 +121,15 @@ do_install () {
     # Install the sinkService
     install -d ${D}/opt/SolidSense/bin
     install -m 0755 ${S}/sink_service/build/sinkService ${D}/opt/SolidSense/bin/sinkService
+
+    # Install the wirepas Kura dp
+    install -d ${D}/${KURA_PATH}/data/packages
+    cp -a ${S-V1}/Kura/wirepas/WirepasConfigurationService.dp \
+        ${D}${KURA_PATH}/data/packages
 }
 
 FILES_${PN} = " \
+    /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
     /usr/bin/wm-gw \
     /usr/bin/wm-dbus-print \
     /usr/lib/python3.7/site-packages/dbusCExtension.cpython-37m-arm-linux-gnueabihf.so \
