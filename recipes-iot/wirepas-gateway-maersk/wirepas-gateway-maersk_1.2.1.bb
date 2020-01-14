@@ -9,14 +9,18 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://github.com/SolidRun/gateway;branch=maersk-dev-clean;name=gateway \
     git://github.com/wirepas/c-mesh-api;destsuffix=git/sink_service/c-mesh-api;name=c-mesh-api \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.911;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-kura-wirepas.git;protocol=ssh;branch=master;destsuffix=SolidSense-kura-wp;name=SolidSense-kura-wp \
 "
 
 SRCREV_gateway = "4892d678515b69314403f249e554f5bf02970be1"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "25052bbc277a0b690fec8c94512c0c005b9ac1aa"
+SRCREV_SolidSense-V1 = "37ca2156a9e48e767db20b8fd75f950c7f06c702"
+SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
+S-kura-wp = "${WORKDIR}/SolidSense-kura-wp"
+KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
 
 DEPENDS = " \
     python3-native \
@@ -54,7 +58,7 @@ WIREPAS_GATEWAY_INSTALL_ARGS = " \
 "
 
 SYSTEMD_SERVICE_${PN} = "wirepasSink1.service wirepasSink2.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "enable"
+SYSTEMD_AUTO_ENABLE_${PN} = "disable"
 
 inherit python3native python3-dir setuptools3 systemd
 
@@ -122,9 +126,15 @@ do_install () {
     # Install the sinkService
     install -d ${D}/opt/SolidSense/bin
     install -m 0755 ${S}/sink_service/build/sinkService ${D}/opt/SolidSense/bin/sinkService
+
+    # Install the wirepas Kura dp
+    install -d ${D}/${KURA_PATH}/data/packages
+    cp -a ${S-kura-wp}/com.solidsense.kura.WirepasConfigurationService/resources/dp/WirepasConfigurationService.dp \
+        ${D}${KURA_PATH}/data/packages
 }
 
 FILES_${PN} = " \
+    /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
     /usr/bin/wm-gw \
     /usr/bin/wm-dbus-print \
     /usr/lib/python3.7/site-packages/dbusCExtension.cpython-37m-arm-linux-gnueabihf.so \
