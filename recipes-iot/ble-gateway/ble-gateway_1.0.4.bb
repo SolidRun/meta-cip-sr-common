@@ -6,9 +6,9 @@ LIC_FILES_CHKSUM = " \
 "
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh \
+    git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=V1.0.4 \
 "
-SRCREV = "29dce4ca83f9e9c8f481d17c57a4d0c3b58347e9"
+SRCREV = "7addbfe6815ca373b81148ca5341eade69de20b0"
 S = "${WORKDIR}/git"
 PARALLEL_MAKE = ""
 
@@ -25,6 +25,7 @@ DEPENDS = " \
 RDEPENDS_${PN} = " \
     bluez5 \
     kura \
+    mynewt-sr-nina-b1-blehci \
     python3 \
     python3-paho-mqtt \
     python3-pyyaml \
@@ -52,9 +53,6 @@ do_install () {
     cp -arP ${S}/bluepy ${D}/opt/SolidSense/ble_gateway/
     chown -R root:root ${D}/opt/SolidSense/ble_gateway
 
-    # install initial config
-    install -d ${D}/data/solidsense/ble_gateway
-    install -m 0644 ${S}/MQTT-Transport-Client/settings_example.cfg ${D}/data/solidsense/ble_gateway/bleTransport.service.cfg
     # install initial config to backup location
     install -d ${D}/opt/SolidSense/.config/ble_gateway
     install -m 0644 ${S}/MQTT-Transport-Client/settings_example.cfg ${D}/opt/SolidSense/.config/ble_gateway/bleTransport.service.cfg
@@ -81,7 +79,6 @@ do_install () {
 }
 
 FILES_${PN} = " \
-  /data/solidsense/ble_gateway/bleTransport.service.cfg \
   /opt/SolidSense/.config/ble_gateway/bleTransport.service.cfg \
   /opt/SolidSense/bin/bluepy-helper \
   /opt/SolidSense/bin/bluepy-helper-dbg \
