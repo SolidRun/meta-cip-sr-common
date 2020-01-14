@@ -39,9 +39,22 @@ usage () {
 	echo "    -r|--release <release version>		:default is <dev>"
 	echo "    -d|--date <date>				:default is <$("${DATE}" "+%Y%m%d")>"
 	echo "    -i|--iteration <iteration>			:default is <00>"
+	echo "    -c|--customer <customer>			:default is no specific customer"
 	echo "    -h|--help"
 	echo ""
 	exit 1
+}
+
+find_customer () {
+	cust="${1}"
+	case "${cust}" in
+		maersk )
+			echo "M"
+			;;
+		* )
+			echo ""
+			;;
+	esac
 }
 
 calc_duration () {
@@ -63,11 +76,21 @@ do_build () {
 		printf "    ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
 			"${device}" \
 			"${log}"
-		MENDER_ARTIFACT_NAME="${VERSION}" \
-			kas build kas-solidsense.yml:meta-cip-sr-"${device}"/kas-"${device}".yml > "${log}" 2>&1
+		if [ -n "${CUSTOMER}" ] ; then
+			main_yml="kas-solidsense-maersk.yml"
+		else
+			main_yml="kas-solidsense.yml"
+		fi
+		device_yml="meta-cip-sr-${device}/kas-${device}.yml"
+		MENDER_ARTIFACT_NAME="${VERSION}" kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
+		ret="${?}"
 		END="$(${DATE} +%s)"
 		duration="$(calc_duration "${START}" "${END}")"
-		printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+		if [ "${ret}" -eq "1" ] ; then
+			printf " ${YELLOW}(%s)${NC} Error!: (%s)\\n" "${duration}" "${ret}"
+		else
+			printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+		fi
 	done
 	printf "\\n"
 }
@@ -103,7 +126,7 @@ do_deploy_images () {
 
 # main
 
-options=$(getopt -l "help,hardware:,product:,release:,date:,iteration:" -o "hH:p:r:d:i:" -- "${@}")
+options=$(getopt -l "help,hardware:,product:,release:,date:,iteration:,customer:" -o "hH:p:r:d:i:c:" -- "${@}")
 eval set -- "${options}"
 
 while true
@@ -137,6 +160,11 @@ do
 			shift
 			ITERATION="${1}"
 			;;
+		-c|--customer )
+			shift
+			CUSTOMER="${1}"
+			CUSTOMER_VER="$(find_customer "${1}")"
+			;;
 		\? )
 			usage
 			;;
@@ -162,7 +190,11 @@ else
 		exit 1
 	fi
 	FULL_START="$(${DATE} +%s)"
-	VERSION="${PRODUCT}-${RELEASE}-${RELEASE_DATE}${ITERATION}"
+	if [ -n "${CUSTOMER_VER}" ] ; then
+		VERSION="${PRODUCT}-${CUSTOMER_VER}${RELEASE}-${RELEASE_DATE}${ITERATION}"
+	else
+		VERSION="${PRODUCT}-${RELEASE}-${RELEASE_DATE}${ITERATION}"
+	fi
 	do_build
 	do_deploy_images
 	FULL_END="$(${DATE} +%s)"
