@@ -7,18 +7,15 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.911;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
     git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=V1.0.3;destsuffix=SolidSense-BLE;name=SolidSense-BLE \
-    git://git@github.com/SolidRun/SolidSense-kura-wirepas.git;protocol=ssh;branch=master;destsuffix=SolidSense-kura-wp;name=SolidSense-kura-wp \
     file://kura-${PV}.tar.gz \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "25052bbc277a0b690fec8c94512c0c005b9ac1aa"
+SRCREV_SolidSense-V1 = "37ca2156a9e48e767db20b8fd75f950c7f06c702"
 SRCREV_SolidSense-BLE = "5841bdc83078e00028dda1d1c52ff4b0979b1e38"
-SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-BLE = "${WORKDIR}/SolidSense-BLE"
-S-kura-wp = "${WORKDIR}/SolidSense-kura-wp"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
 
 SYSTEMD_SERVICE_${PN} = "kura.service"
@@ -67,25 +64,27 @@ do_install () {
     install -d ${D}${KURA_PATH}/user
     install -m 0644 ${S-V1}/Kura/user/log4j.xml ${D}${KURA_PATH}/user/log4j.xml
 
-    # Install SolidSense configuration scripts/data
-    rm -rf ${D}/opt/SolidSense/kura/config/*
-    cp -arP ${S-V1}/Kura/Config/* ${D}/opt/SolidSense/kura/config/
+    # Remove old SolidSense configuration scripts/data
+    rm -rf ${D}/opt/SolidSense/kura
 
-    # Create initial empty dpa.properties
+    # Remove old /opt/SolidSense/utilities
+    rm -rf ${D}/opt/SolidSense/utilities
+
+    # Remove dpa.properties, this is created by the SolidSense provisioning
     rm -f ${D}${KURA_PATH}/data/dpa.properties
-    touch ${D}${KURA_PATH}/data/dpa.properties
 
-    # Install the wirepas Kura dp
-    cp -a ${S-kura-wp}/com.solidsense.kura.WirepasConfigurationService/resources/dp/WirepasConfigurationService.dp \
-        ${D}${KURA_PATH}/data/packages
-    echo "WirePasConfigurationService=file\:/opt/eclipse/kura/data/packages/WirepasConfigurationService.dp" >> \
-        ${D}${KURA_PATH}/data/dpa.properties
+    # Remove org.eclipse.kura.driver.eddystone-1.0.0.dp
+    rm -f ${D}${KURA_PATH}/data/packages/org.eclipse.kura.driver.eddystone-1.0.0.dp
+
+    # Remove WirepasConfigurationService.dp as install has been moved to wirepas-gateway{-maersk} recipe
+    rm -f ${D}${KURA_PATH}/data/packages/WirepasConfigurationService.dp
 
     # Install the ble-gateway Kura dp
-    #    TODO: create a conditional to only install this if the ble-gateway recipe is selected
     cp -a ${S-BLE}/Install/BLEConfigurationService.dp ${D}${KURA_PATH}/data/packages
-    echo "BLEConfigurationService=file\:/opt/eclipse/kura/data/packages/BLEConfigurationService.dp" >> \
-        ${D}${KURA_PATH}/data/dpa.properties
+
+    # Install the log configuration service
+    cp -a ${S-V1}/Kura/logs/com.solidsense.kura.LogConfigurationService/resources/dp/LogConfigurationService.dp \
+        ${D}${KURA_PATH}/data/packages
 
     chown -R root:root ${D}/opt
 }
@@ -104,12 +103,9 @@ FILES_${PN} = " \
   /opt/eclipse/kura_4.0.0_solid_sense/.data \
   /opt/eclipse/kura_4.0.0_solid_sense/user \
   /opt/eclipse/kura_4.0.0_solid_sense/data/store.save \
-  /opt/eclipse/kura_4.0.0_solid_sense/data/dpa.properties \
   /opt/eclipse/kura_4.0.0_solid_sense/data/persistance \
   /opt/eclipse/kura_4.0.0_solid_sense/data/packages \
   /opt/eclipse/kura_4.0.0_solid_sense/data/persistance/verification \
-  /opt/eclipse/kura_4.0.0_solid_sense/data/packages/org.eclipse.kura.driver.eddystone-1.0.0.dp \
-  /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
   /opt/eclipse/kura_4.0.0_solid_sense/bin/start_kura_debug.sh \
   /opt/eclipse/kura_4.0.0_solid_sense/bin/start_kura.sh \
   /opt/eclipse/kura_4.0.0_solid_sense/bin/start_kura_background.sh \
@@ -326,75 +322,5 @@ FILES_${PN} = " \
   /opt/eclipse/kura_4.0.0_solid_sense/user/snapshots \
   /opt/eclipse/kura_4.0.0_solid_sense/user/security \
   /opt/eclipse/kura_4.0.0_solid_sense/user/security/cacerts.ks \
-  /opt/SolidSense/utilities \
-  /opt/SolidSense/kura \
-  /opt/SolidSense/utilities/kura_config.sh \
-  /opt/SolidSense/utilities/solid_sense_install \
-  /opt/SolidSense/utilities/repair \
-  /opt/SolidSense/utilities/init \
-  /opt/SolidSense/utilities/qmm \
-  /opt/SolidSense/utilities/repair/repair_wifi \
-  /opt/SolidSense/utilities/repair/hostapd-wlan0.conf.tmpl \
-  /opt/SolidSense/utilities/repair/repair_wifi.zip \
-  /opt/SolidSense/utilities/init/airsense-config \
-  /opt/SolidSense/utilities/init/initscript \
-  /opt/SolidSense/utilities/qmm/qmm_launcher \
-  /opt/SolidSense/utilities/qmm/QMM-README \
-  /opt/SolidSense/utilities/qmm/qmm \
-  /opt/SolidSense/utilities/qmm/.operatorsDB \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libgcc_s.so.1 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libz.so.1 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_codecs_jp.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/termios.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/resource.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libbz2.so.1.0 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_ctypes.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libssl.so.1.0.0 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_codecs_tw.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_codecs_iso2022.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_multibytecodec.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libffi.so.6 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_codecs_kr.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_hashlib.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libcrypto.so.1.0.0 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/bz2.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/QuectelATmain-V1.0 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/readline.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_codecs_hk.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libtinfo.so.5 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_codecs_cn.arm-linux-gnueabihf.so \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/libreadline.so.6 \
-  /opt/SolidSense/utilities/qmm/QuectelATmain-V1.0/_json.arm-linux-gnueabihf.so \
-  /opt/SolidSense/kura/snapshots \
-  /opt/SolidSense/kura/plugins \
-  /opt/SolidSense/kura/config \
-  /opt/SolidSense/kura/snapshots/snapshot_BS181300100_AMAGGI_190107.xml \
-  /opt/SolidSense/kura/snapshots/@eaDir \
-  /opt/SolidSense/kura/snapshots/@eaDir/snapshot_BS181300100_AMAGGI_190107.xml@SynoEAStream \
-  /opt/SolidSense/kura/plugins/org.eclipse.kura.net.admin_1.0.400.jar \
-  /opt/SolidSense/kura/plugins/org.eclipse.kura.linux.net_1.0.400.jar \
-  /opt/SolidSense/kura/config/snapshot_0.xml \
-  /opt/SolidSense/kura/config/gen_kura_properties.py \
-  /opt/SolidSense/kura/config/kura_custom.properties.tmpl \
-  /opt/SolidSense/kura/config/kura.properties \
-  /opt/SolidSense/kura/config/solid_kura_config \
-  /opt/SolidSense/kura/config/kuranet.conf.tmpl \
-  /opt/SolidSense/kura/config/snapshot_1544970882041.xml \
-  /opt/SolidSense/kura/config/kura_custom \
-  /opt/SolidSense/kura/config/snapshot0-elements \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-data.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-position.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-firewall.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-mqtt.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-net.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-mqtt-ref.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-clock.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-net-ppp.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-watchdog.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-reference.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-header.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-H2Db.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-ssl.xml \
-  /opt/SolidSense/kura/config/snapshot0-elements/snapshot_0-cloud.xml \
+  /opt/SolidSense \
 "
