@@ -24,4 +24,10 @@ do_install () {
     sed -i -e 's,@SBINDIR@,${sbindir},g' \
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
         ${D}${systemd_unitdir}/system/crond.service
+
+    install -d ${D}/var/spool/cron/crontabs
 }
+
+FILES_${PN} = " \
+    /var/spool/cron/crontabs \
+"
