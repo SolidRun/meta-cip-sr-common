@@ -9,11 +9,11 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-Modem_GPS_Service.git;protocol=ssh \
 "
-SRCREV = "813337f6882d46bbea01e21e9b39b79feea3e95c"
+SRCREV = "74ec474eb1c818e197ae6c644dba864789ffe853"
 S = "${WORKDIR}/git"
 
 SYSTEMD_SERVICE_${PN} = "modem_gps.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "enable"
+SYSTEMD_AUTO_ENABLE_${PN} = "disable"
 
 inherit systemd
 
@@ -33,9 +33,6 @@ do_install () {
     install -d ${D}/data/.opt/log
     ln -s /data/.opt/log ${D}/opt/log
 
-    install -d ${D}/data/solidsense/modem_gps
-    install -d ${D}/data/solidsense/log
-
     install -d ${D}${bindir}
     install -m 0755 ${S}/modem_status ${D}${bindir}/modem_status
     sed -i -e 's,/bin/bash,/bin/sh,g' ${D}${bindir}/modem_status
@@ -54,8 +51,6 @@ do_install () {
 
 FILES_${PN} = " \
     /data/.opt/log \
-    /data/solidsense/log \
-    /data/solidsense/modem_gps \
     /usr/bin/modem_status \
     /opt/log \
     /opt/SolidSense/modem_gps/README.md \
