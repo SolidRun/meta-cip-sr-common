@@ -133,7 +133,6 @@ while true
 do
 	case "${1}" in
 		-h|--help )
-			shift
 			usage
 			;;
 		-H|--hardware )
