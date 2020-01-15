@@ -7,10 +7,11 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
+   file://bind9.init \
    file://check_solidsense.service \
    file://check_solidsense.sh \
    file://gpl-2.0.txt \
-   file://bind9.init \
+   file://restart.sh \
 "
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "enable"
@@ -19,7 +20,10 @@ inherit systemd
 
 do_install () {
     install -d ${D}/opt/scripts
+    install -d ${D}/opt/SolidSense/bin
     install -m 0755 ${WORKDIR}/check_solidsense.sh ${D}/opt/scripts/check_solidsense
+    install -m 0755 ${WORKDIR}/restart.sh ${D}/opt/scripts/restart
+    ln -s /opt/scripts/restart ${D}/opt/SolidSense/bin/restart
 
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/check_solidsense.service ${D}${systemd_unitdir}/system
@@ -37,6 +41,8 @@ FILES_${PN} = " \
     /etc/init.d/bind9 \
     /etc/solidsense_device \
     /opt/scripts/check_solidsense \
+    /opt/scripts/restart \
+    /opt/SolidSense/bin/restart \
 "
 
 COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl"
