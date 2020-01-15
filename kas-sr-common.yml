@@ -69,7 +69,7 @@ local_conf_header:
     # Temporary additional packages
     IMAGE_INSTALL_append += "ppp wpa-supplicant wireless-regdb iw hostapd bluez5 bluez5-noinst-tools"
     IMAGE_INSTALL_append += "nfs-utils modem-gps wirepas-gateway wirepas-gateway-dev dhcp-server bind"
-    IMAGE_INSTALL_append += "kura wireless-tools ble-gateway busybox-cron openvpn"
+    IMAGE_INSTALL_append += "kura wireless-tools ble-gateway cronie openvpn openssl-bin"
     #     Debug
     # IMAGE_INSTALL_append += "gdb strace tcpdump"
     #     Java
