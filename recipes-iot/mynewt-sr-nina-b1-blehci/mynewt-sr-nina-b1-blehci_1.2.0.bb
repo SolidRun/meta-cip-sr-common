@@ -12,7 +12,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "37ca2156a9e48e767db20b8fd75f950c7f06c702"
+SRCREV_SolidSense-V1 = "316cbf8119b603e858f5ee192bc11a023bab26f0"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 RDEPENDS_${PN} = " \
@@ -26,8 +26,10 @@ inherit systemd
 
 do_install () {
     # Install flashing script
+    install -d ${D}/opt/scripts
     install -d ${D}/opt/SolidSense/bin
-    install -m 0755 ${S-V1}/BLE/scripts/flash_ble.sh ${D}/opt/SolidSense/bin/flash_ble
+    install -m 0755 ${S-V1}/BLE/scripts/flash_ble.sh ${D}/opt/scripts/flash_ble
+    ln -s /opt/scripts/flash_ble ${D}/opt/SolidSense/bin/flash_ble
 
     # install systemd service file
     install -d ${D}${systemd_unitdir}/system
@@ -44,5 +46,6 @@ do_install () {
 }
 
 FILES_${PN} = " \
+    /opt/scripts/flash_ble \
     /opt/SolidSense/bin/flash_ble \
 "
