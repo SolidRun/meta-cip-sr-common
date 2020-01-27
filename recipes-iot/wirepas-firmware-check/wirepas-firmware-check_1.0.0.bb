@@ -11,7 +11,7 @@ SRC_URI = " \
     file://LICENSE \
 "
 
-SRCREV_SolidSense-V1 = "25530d3ccfefb72f58f6caae949289e1f6627a60"
+SRCREV_SolidSense-V1 = "89d84173571a7e77cf5a1b337af78c7e2bb8b1a9"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_compile_prepend () {
