@@ -7,13 +7,13 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
-    git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=V1.0.3;destsuffix=SolidSense-BLE;name=SolidSense-BLE \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=master;destsuffix=SolidSense-BLE;name=SolidSense-BLE \
     file://kura-${PV}.tar.gz \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "316cbf8119b603e858f5ee192bc11a023bab26f0"
-SRCREV_SolidSense-BLE = "5841bdc83078e00028dda1d1c52ff4b0979b1e38"
+SRCREV_SolidSense-V1 = "89d84173571a7e77cf5a1b337af78c7e2bb8b1a9"
+SRCREV_SolidSense-BLE = "bbf94215deeceeab1f368f758ed75841b9bb72a6"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-BLE = "${WORKDIR}/SolidSense-BLE"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
@@ -317,7 +317,6 @@ FILES_${PN} = " \
   /opt/eclipse/kura_4.0.0_solid_sense/.data/interfaces \
   /opt/eclipse/kura_4.0.0_solid_sense/user/kuranet.conf \
   /opt/eclipse/kura_4.0.0_solid_sense/user/kura_custom.properties \
-  /opt/eclipse/kura_4.0.0_solid_sense/user/.kura_custom.properties.swp \
   /opt/eclipse/kura_4.0.0_solid_sense/user/log4j.xml \
   /opt/eclipse/kura_4.0.0_solid_sense/user/snapshots \
   /opt/eclipse/kura_4.0.0_solid_sense/user/security \
