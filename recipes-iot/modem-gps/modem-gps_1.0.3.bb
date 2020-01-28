@@ -30,9 +30,6 @@ do_install () {
     cp -arP ${S}/* ${D}/opt/SolidSense/modem_gps
     chown -R root:root ${D}/opt/SolidSense/modem_gps
 
-#    install -d ${D}/data/.opt/log
-#    ln -s /data/.opt/log ${D}/opt/log
-
     install -d ${D}${bindir}
     install -m 0755 ${S}/modem_status ${D}${bindir}/modem_status
     sed -i -e 's,/bin/bash,/bin/sh,g' ${D}${bindir}/modem_status
@@ -47,6 +44,7 @@ do_install () {
     rm -f ${D}/opt/SolidSense/modem_gps/install.sh
     rm -f ${D}/opt/SolidSense/modem_gps/modem_gps.service
     rm -f ${D}/opt/SolidSense/modem_gps/modem_status
+    rm -f ${D}/opt/SolidSense/modem_gps/setup.py
 }
 
 FILES_${PN} = " \
