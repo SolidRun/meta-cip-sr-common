@@ -7,11 +7,11 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
     file://gpl-2.0.txt \
 "
 
-SRCREV_SolidSense-V1 = "316cbf8119b603e858f5ee192bc11a023bab26f0"
+SRCREV_SolidSense-V1 = "0012e1a5c727f811c21ae3b2e157f2c1f51fdc51"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_install () {
