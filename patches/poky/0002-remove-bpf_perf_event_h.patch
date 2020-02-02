@@ -1,0 +1,25 @@
+From baac753caf0851f5d14c3f82ac7dc0ff2ab0740e Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Thu, 30 Jan 2020 14:35:14 -0500
+Subject: [PATCH] remove asm/bpf_perf_event.h
+
+---
+ meta/recipes-kernel/linux-libc-headers/linux-libc-headers.inc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta/recipes-kernel/linux-libc-headers/linux-libc-headers.inc b/meta/recipes-kernel/linux-libc-headers/linux-libc-headers.inc
+index 7f838f623e..bfbfadad3c 100644
+--- a/meta/recipes-kernel/linux-libc-headers/linux-libc-headers.inc
++++ b/meta/recipes-kernel/linux-libc-headers/linux-libc-headers.inc
+@@ -81,7 +81,7 @@ do_install_append_armeb () {
+ }
+ 
+ do_install_armmultilib () {
+-	oe_multilib_header asm/auxvec.h asm/bitsperlong.h asm/byteorder.h asm/fcntl.h asm/hwcap.h asm/ioctls.h asm/kvm.h asm/kvm_para.h asm/mman.h asm/param.h asm/perf_regs.h asm/bpf_perf_event.h
++	oe_multilib_header asm/auxvec.h asm/bitsperlong.h asm/byteorder.h asm/fcntl.h asm/hwcap.h asm/ioctls.h asm/kvm.h asm/kvm_para.h asm/mman.h asm/param.h asm/perf_regs.h
+ 	oe_multilib_header asm/posix_types.h asm/ptrace.h  asm/setup.h  asm/sigcontext.h asm/siginfo.h asm/signal.h asm/stat.h  asm/statfs.h asm/swab.h  asm/types.h asm/unistd.h
+ }
+ 
+-- 
+2.20.1
+
