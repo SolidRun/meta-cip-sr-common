@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# globals
+PROG_NAME="$(basename "${0}")"
+BB1_TMPFILE=""
+BB2_TMPFILE=""
+BRANCH=""
+FIND_REGEX="SolidSense-V1"
+
+# functions
+usage () {
+	echo "${PROG_NAME}: <SRC_REV>"
+	echo "    -h|--help"
+	echo "    -b|--branch <branch>"
+	echo "    -r|--regex <regex>			:default is <SolidSense-V1>"
+	echo ""
+	exit 1
+}
+
+find_files_to_update () {
+	find . -type f -name \*bb\* -exec grep -q "${FIND_REGEX}" {} \; -print
+}
+
+# main
+
+options=$(getopt -l "help,branch:,regex:" -o "hb:r:" -- "${@}")
+eval set -- "${options}"
+
+while true
+do
+	case "${1}" in
+		-h|--help )
+			usage
+			;;
+		-b|--branch )
+			shift
+			BRANCH="${1}"
+			;;
+		-r|--regex )
+			shift
+			FIND_REGEX="${1}"
+			;;
+		\? )
+			usage
+			;;
+		: )
+			echo "Invalid option: ${OPTARG} requires an argument" 1>&2
+			;;
+		-- )
+			shift
+			break
+			;;
+		* )
+			usage
+			;;
+	esac
+	shift
+done
+
+if [ "${#}" -ne "1" ]; then
+	usage
+else
+	SRCREV="${1}"
+	for bb_file in $(find_files_to_update); do
+		if echo "${bb_file}" | grep -q swp; then
+			continue
+		fi
+		echo "Updating: ${bb_file}"
+		BB1_TMPFILE="$(mktemp /tmp/bb_tmpfile1.XXXXXX)"
+		if [ -z "${BRANCH}" ]; then
+			sed "s/SRCREV_${FIND_REGEX} = \".*\"/SRCREV_${FIND_REGEX} = \"${SRCREV}\"/" < "${bb_file}" \
+				> "${BB1_TMPFILE}"
+			mv "${BB1_TMPFILE}" "${bb_file}"
+		else
+			BB2_TMPFILE="$(mktemp /tmp/bb_tmpfile2.XXXXXX)"
+			sed "s/SRCREV_${FIND_REGEX} = \".*\"/SRCREV_${FIND_REGEX} = \"${SRCREV}\"/" < "${bb_file}" \
+				> "${BB1_TMPFILE}"
+			sed "s/;branch=.*;/;branch=${BRANCH};/" < "${BB1_TMPFILE}" > "${BB2_TMPFILE}"
+			rm "${BB1_TMPFILE}"
+			mv "${BB2_TMPFILE}" "${bb_file}"
+		fi
+	done
+fi
