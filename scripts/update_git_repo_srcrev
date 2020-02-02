@@ -5,6 +5,7 @@ PROG_NAME="$(basename "${0}")"
 BB1_TMPFILE=""
 BRANCH=""
 FIND_REGEX="SolidSense-V1"
+UPDATE_GIT=0
 
 # functions
 usage () {
@@ -91,5 +92,8 @@ else
 			print $0
 		}' < "${bb_file}" > "${BB1_TMPFILE}"
 		mv "${BB1_TMPFILE}" "${bb_file}"
+		if [ "${UPDATE_GIT}" = "1" ]; then
+			git commit -m "$(basename "${bb_file}"): update git branch/SRCREV" "${bb_file}"
+		fi
 	done
 fi
