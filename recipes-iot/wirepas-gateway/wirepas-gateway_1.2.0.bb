@@ -9,10 +9,10 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://github.com/wirepas/gateway;rev=v1.2.0 \
     git://github.com/wirepas/c-mesh-api;rev=v1.2.0;destsuffix=git/sink_service/c-mesh-api \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "316cbf8119b603e858f5ee192bc11a023bab26f0"
+SRCREV_SolidSense-V1 = "9d0b55c1352761089604337aeb6ced956c7adc9c"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
