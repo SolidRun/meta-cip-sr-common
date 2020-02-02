@@ -3,7 +3,6 @@
 # globals
 PROG_NAME="$(basename "${0}")"
 BB1_TMPFILE=""
-BB2_TMPFILE=""
 BRANCH=""
 FIND_REGEX="SolidSense-V1"
 
@@ -67,17 +66,30 @@ else
 		fi
 		echo "Updating: ${bb_file}"
 		BB1_TMPFILE="$(mktemp /tmp/bb_tmpfile1.XXXXXX)"
-		if [ -z "${BRANCH}" ]; then
-			sed "s/SRCREV_${FIND_REGEX} = \".*\"/SRCREV_${FIND_REGEX} = \"${SRCREV}\"/" < "${bb_file}" \
-				> "${BB1_TMPFILE}"
-			mv "${BB1_TMPFILE}" "${bb_file}"
-		else
-			BB2_TMPFILE="$(mktemp /tmp/bb_tmpfile2.XXXXXX)"
-			sed "s/SRCREV_${FIND_REGEX} = \".*\"/SRCREV_${FIND_REGEX} = \"${SRCREV}\"/" < "${bb_file}" \
-				> "${BB1_TMPFILE}"
-			sed "s/;branch=.*;/;branch=${BRANCH};/" < "${BB1_TMPFILE}" > "${BB2_TMPFILE}"
-			rm "${BB1_TMPFILE}"
-			mv "${BB2_TMPFILE}" "${bb_file}"
-		fi
+		awk -v FIND_REGEX="${FIND_REGEX}" -v BRANCH="${BRANCH}" -v SRCREV="${SRCREV}" \
+		'BEGIN {
+		}
+		{
+			if (BRANCH)
+			{
+				if ($0 ~ ".*git.*"FIND_REGEX)
+				{
+					if (gsub(/;branch=[[:alnum:]\.]+;/, ";branch="BRANCH";", $0))
+					{
+						print $0
+					} else {
+						print $0
+					}
+					next
+				}
+			}
+			if ($0 ~ "^SRCREV_"FIND_REGEX)
+			{
+				print "SRCREV_"FIND_REGEX" = \""SRCREV"\""
+				next
+			}
+			print $0
+		}' < "${bb_file}" > "${BB1_TMPFILE}"
+		mv "${BB1_TMPFILE}" "${bb_file}"
 	done
 fi
