@@ -7,14 +7,14 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.95;destsuffix=SolidSense;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense;name=SolidSense-V1 \
     git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=V1.0.3;destsuffix=SolidSense-BLE;name=SolidSense-BLE \
     git://github.com/eclipse/kura;branch=develop;rev=KURA_${PV}_RELEASE;destsuffix=kura;name=kura \
     file://org.eclipse.kura.linux.net_1.0.400.jar \
     file://org.eclipse.kura.net.admin_1.0.400.jar \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "316cbf8119b603e858f5ee192bc11a023bab26f0"
+SRCREV_SolidSense-V1 = "9d0b55c1352761089604337aeb6ced956c7adc9c"
 SRCREV_SolidSense-BLE = "5841bdc83078e00028dda1d1c52ff4b0979b1e38"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-BLE = "${WORKDIR}/SolidSense-BLE"
