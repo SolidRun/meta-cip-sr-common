@@ -1,7 +1,7 @@
 [Unit]
 Description=Check/create /etc/solidsense
 After=systemd-journald.service
-Before=systemd-hostnamed.service hostapd-wlan0.service
+Before=systemd-hostnamed.service
 
 [Service]
 Type=forking
@@ -9,3 +9,4 @@ ExecStart=/opt/scripts/check_solidsense
 
 [Install]
 WantedBy=multi-user.target
+RequiredBy=systemd-hostnamed.service

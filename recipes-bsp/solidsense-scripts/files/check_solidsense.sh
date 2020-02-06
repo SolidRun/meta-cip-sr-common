@@ -77,6 +77,10 @@ check_etc_hostname () {
 			${log_it} "Updating ${hostname_file}"
 			/bin/echo "${SERIAL}" > ${hostname_file}
 		fi
+	else
+		${log_it} "${hostname_file} does not exist"
+		${log_it} "Creating ${hostname_file}"
+		/bin/echo "${SERIAL}" > ${hostname_file}
 	fi
 
 	${log_it} "Checking ${kernel_hostname_file}"
