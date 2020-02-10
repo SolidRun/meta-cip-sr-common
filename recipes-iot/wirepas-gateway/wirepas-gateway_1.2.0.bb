@@ -88,7 +88,7 @@ do_install () {
     install -m 0644 ${S-V1}/wirepas/scripts/configure_node.py ${D}/opt/SolidSense/wirepas/configure_node.py
 
     # Install the dbus_print_sink.py
-    install -d ${D}/opt/SoliSense/wirepas
+    install -d ${D}/opt/SolidSense/wirepas
     install -m 0644 ${S-V1}/wirepas/scripts/dbus_print_sink.py ${D}/opt/SolidSense/wirepas/dbus_print_sink.py
     install -d ${D}/${bindir}
     install -m 0755 ${S-V1}/wirepas/scripts/read_sink.bash ${D}${bindir}/read_sink
@@ -136,6 +136,7 @@ do_install () {
 
 FILES_${PN} = " \
     /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
+    /usr/bin/read_sink \
     /usr/bin/wm-gw \
     /usr/bin/wm-dbus-print \
     /usr/lib/python3.7/site-packages/dbusCExtension.cpython-37m-arm-linux-gnueabihf.so \
@@ -205,6 +206,7 @@ FILES_${PN} = " \
     /opt/SolidSense/wirepas/grpc/grpc_service.py \
     /opt/SolidSense/bin/sinkService \
     /opt/SolidSense/wirepas/configure_node.py \
+    /opt/SolidSense/wirepas/dbus_print_sink.py \
     /etc/dbus-1/system.d/com.wirepas.sink.conf \
     /lib/systemd/system/wirepasSinkConfig.service \
     /lib/systemd/system/wirepasTransport2.service \
