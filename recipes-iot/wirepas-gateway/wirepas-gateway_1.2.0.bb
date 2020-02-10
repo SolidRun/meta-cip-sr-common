@@ -12,7 +12,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "8549981d99e169a1b68e5abac25bd70ef21225f4"
+SRCREV_SolidSense-V1 = "717db1f98c17b0a0adb4932597fe457970edc3bb"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
@@ -86,6 +86,12 @@ do_install () {
     # Install the configure_node.py
     install -d ${D}/opt/SolidSense/wirepas
     install -m 0644 ${S-V1}/wirepas/scripts/configure_node.py ${D}/opt/SolidSense/wirepas/configure_node.py
+
+    # Install the dbus_print_sink.py
+    install -d ${D}/opt/SoliSense/wirepas
+    install -m 0644 ${S-V1}/wirepas/scripts/dbus_print_sink.py ${D}/opt/SolidSense/wirepas/dbus_print_sink.py
+    install -d ${D}/${bindir}
+    install -m 0755 ${S-V1}/wirepas/scripts/read_sink.bash ${D}${bindir}/read_sink
 
     # Install the dbus config
     install -d ${D}${sysconfdir}/dbus-1/system.d
