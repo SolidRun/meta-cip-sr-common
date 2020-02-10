@@ -14,7 +14,7 @@ SRC_URI = " \
     file://org.eclipse.kura.net.admin_1.0.400.jar \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "9d0b55c1352761089604337aeb6ced956c7adc9c"
+SRCREV_SolidSense-V1 = "8549981d99e169a1b68e5abac25bd70ef21225f4"
 SRCREV_SolidSense-BLE = "5841bdc83078e00028dda1d1c52ff4b0979b1e38"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-BLE = "${WORKDIR}/SolidSense-BLE"

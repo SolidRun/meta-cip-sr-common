@@ -8,7 +8,7 @@ SRC_URI += " \
     file://ip6tables.service \
     file://ipv6-forward.conf \
 "
-SRCREV_SolidSense-V1 = "9d0b55c1352761089604337aeb6ced956c7adc9c"
+SRCREV_SolidSense-V1 = "8549981d99e169a1b68e5abac25bd70ef21225f4"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} += "iptables.service ip6tables.service"

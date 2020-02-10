@@ -12,7 +12,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "9d0b55c1352761089604337aeb6ced956c7adc9c"
+SRCREV_SolidSense-V1 = "8549981d99e169a1b68e5abac25bd70ef21225f4"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
