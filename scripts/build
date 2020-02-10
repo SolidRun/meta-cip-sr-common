@@ -157,7 +157,7 @@ do
 			;;
 		-i|--iteration )
 			shift
-			ITERATION="${1}"
+			ITERATION="$(printf "%02d" "${1}")"
 			;;
 		-c|--customer )
 			shift
