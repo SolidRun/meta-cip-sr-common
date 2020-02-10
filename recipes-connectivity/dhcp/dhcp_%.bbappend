@@ -26,9 +26,10 @@ do_install_append () {
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
         ${D}${systemd_unitdir}/system/dhcpd-wlan0.service
 
-    # Remove unwanted dhcp service files
+    # Remove files
     rm -f ${D}${systemd_unitdir}/system/dhcpd.service
     rm -f ${D}${systemd_unitdir}/system/dhcpd6.service
+    rm -f ${D}${sysconfdir}/default/dhcp-server
 }
 
 FILES_${PN}-server += " \
