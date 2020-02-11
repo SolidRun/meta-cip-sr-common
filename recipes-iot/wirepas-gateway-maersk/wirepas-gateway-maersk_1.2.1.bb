@@ -97,6 +97,8 @@ do_install () {
     install -m 0644 ${S-V1}/wirepas/scripts/dbus_print_sink.py ${D}/opt/SolidSense/wirepas/dbus_print_sink.py
     install -d ${D}/${bindir}
     install -m 0755 ${S-V1}/wirepas/scripts/read_sink.bash ${D}${bindir}/read_sink
+    chown 1000:1000 ${D}${bindir}/read_sink
+    chmod ug+s ${D}${bindir}/read_sink
 
     # Install the dbus config
     install -d ${D}${sysconfdir}/dbus-1/system.d
