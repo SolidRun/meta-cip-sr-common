@@ -9,7 +9,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-Modem_GPS_Service.git;protocol=ssh;branch=V1.1 \
 "
-SRCREV = "23d4b453905e6fd50f01f32b6f3453ae5a89f5e9"
+SRCREV = "80c3281010739852af75e439e71f76ea091da151"
 S = "${WORKDIR}/git"
 
 SYSTEMD_SERVICE_${PN} = "modem_gps.service"
@@ -55,6 +55,7 @@ FILES_${PN} = " \
     /opt/SolidSense/modem_gps/Modem_Service_Client.py \
     /opt/SolidSense/modem_gps/README.md \
     /opt/SolidSense/modem_gps/GPS_Reader.py \
+    /opt/SolidSense/modem_gps/Factory_Reset.py \
     /opt/SolidSense/modem_gps/Modem_Service.py \
     /opt/SolidSense/modem_gps/Modem_GPS_Service.py \
     /opt/SolidSense/modem_gps/QuectelAT_Service.py \
