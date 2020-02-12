@@ -12,7 +12,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "8549981d99e169a1b68e5abac25bd70ef21225f4"
+SRCREV_SolidSense-V1 = "15ca631da842de5921e1fc740870c7cba4497c79"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 RDEPENDS_${PN} = " \
