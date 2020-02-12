@@ -15,7 +15,7 @@ SRC_URI = " \
 
 SRCREV_gateway = "65f5f169ef859dd899c786033b3701d23c29ba88"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "717db1f98c17b0a0adb4932597fe457970edc3bb"
+SRCREV_SolidSense-V1 = "15ca631da842de5921e1fc740870c7cba4497c79"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
@@ -97,8 +97,6 @@ do_install () {
     install -m 0644 ${S-V1}/wirepas/scripts/dbus_print_sink.py ${D}/opt/SolidSense/wirepas/dbus_print_sink.py
     install -d ${D}/${bindir}
     install -m 0755 ${S-V1}/wirepas/scripts/read_sink.bash ${D}${bindir}/read_sink
-    chown 1000:1000 ${D}${bindir}/read_sink
-    chmod ug+s ${D}${bindir}/read_sink
 
     # Install the dbus config
     install -d ${D}${sysconfdir}/dbus-1/system.d
