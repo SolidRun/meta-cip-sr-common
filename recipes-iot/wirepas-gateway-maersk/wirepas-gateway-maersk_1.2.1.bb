@@ -15,7 +15,7 @@ SRC_URI = " \
 
 SRCREV_gateway = "65f5f169ef859dd899c786033b3701d23c29ba88"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "15ca631da842de5921e1fc740870c7cba4497c79"
+SRCREV_SolidSense-V1 = "f223172b83d383e08f9c9e12430c16223ba357eb"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
@@ -91,6 +91,8 @@ do_install () {
     # Install the configure_node.py
     install -d ${D}/opt/SolidSense/wirepas
     install -m 0644 ${S-V1}/wirepas/scripts/configure_node.py ${D}/opt/SolidSense/wirepas/configure_node.py
+    install -d ${D}/${bindir}
+    install -m 0755 ${S-V1}/wirepas/scripts/configure_node.sh ${D}${bindir}/configure_node
 
     # Install the dbus_print_sink.py
     install -d ${D}/opt/SolidSense/wirepas
@@ -141,6 +143,7 @@ do_install () {
 
 FILES_${PN} = " \
     /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
+    /usr/bin/configure_node \
     /usr/bin/read_sink \
     /usr/bin/wm-gw \
     /usr/bin/wm-dbus-print \

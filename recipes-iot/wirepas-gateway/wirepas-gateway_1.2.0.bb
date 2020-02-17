@@ -12,7 +12,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "15ca631da842de5921e1fc740870c7cba4497c79"
+SRCREV_SolidSense-V1 = "f223172b83d383e08f9c9e12430c16223ba357eb"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
@@ -86,6 +86,8 @@ do_install () {
     # Install the configure_node.py
     install -d ${D}/opt/SolidSense/wirepas
     install -m 0644 ${S-V1}/wirepas/scripts/configure_node.py ${D}/opt/SolidSense/wirepas/configure_node.py
+    install -d ${D}/${bindir}
+    install -m 0755 ${S-V1}/wirepas/scripts/configure_node.sh ${D}${bindir}/configure_node
 
     # Install the dbus_print_sink.py
     install -d ${D}/opt/SolidSense/wirepas
@@ -136,6 +138,7 @@ do_install () {
 
 FILES_${PN} = " \
     /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
+    /usr/bin/configure_node \
     /usr/bin/read_sink \
     /usr/bin/wm-gw \
     /usr/bin/wm-dbus-print \
