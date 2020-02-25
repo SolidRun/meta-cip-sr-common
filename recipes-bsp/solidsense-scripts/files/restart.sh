@@ -35,7 +35,8 @@ wipe_kura_snapshots () {
 		exit 1
 	fi
 
-	rm -rf "${SNAPSHOT_DIR:?}/*"
+	rm -rf "${SNAPSHOT_DIR:?}"
+	mkdir -p "${SNAPSHOT_DIR}"
 }
 
 do_restart () {
