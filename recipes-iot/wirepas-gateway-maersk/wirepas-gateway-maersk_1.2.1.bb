@@ -9,13 +9,13 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://github.com/SolidRun/gateway;branch=issue_435;name=gateway \
     git://github.com/wirepas/c-mesh-api;destsuffix=git/sink_service/c-mesh-api;name=c-mesh-api \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V0.951;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
     git://git@github.com/SolidRun/SolidSense-kura-wirepas.git;protocol=ssh;branch=master;destsuffix=SolidSense-kura-wp;name=SolidSense-kura-wp \
 "
 
 SRCREV_gateway = "65f5f169ef859dd899c786033b3701d23c29ba88"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "f223172b83d383e08f9c9e12430c16223ba357eb"
+SRCREV_SolidSense-V1 = "d81fbbf5927f127de8d3445dd3facdcf730ec426"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
