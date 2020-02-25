@@ -12,7 +12,11 @@ SRC_URI = " \
    file://check_solidsense.sh \
    file://gpl-2.0.txt \
    file://restart.sh \
+   git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
+SRCREV_SolidSense-V1 = "d81fbbf5927f127de8d3445dd3facdcf730ec426"
+S-V1 = "${WORKDIR}/SolidSense-V1"
+
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 
@@ -24,6 +28,8 @@ do_install () {
     install -m 0755 ${WORKDIR}/check_solidsense.sh ${D}/opt/scripts/check_solidsense
     install -m 0755 ${WORKDIR}/restart.sh ${D}/opt/scripts/restart
     ln -s /opt/scripts/restart ${D}/opt/SolidSense/bin/restart
+
+    install -m 0755 ${S-V1}/ublox/flash_ublox.sh ${D}/opt/scripts/flash_ublox
 
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/check_solidsense.service ${D}${systemd_unitdir}/system
@@ -41,6 +47,7 @@ FILES_${PN} = " \
     /etc/init.d/bind9 \
     /etc/solidsense_device \
     /opt/scripts/check_solidsense \
+    /opt/scripts/flash_ublox \
     /opt/scripts/restart \
     /opt/SolidSense/bin/restart \
 "
