@@ -10,8 +10,6 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense;name=SolidSense-V1 \
     git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=V1.0.3;destsuffix=SolidSense-BLE;name=SolidSense-BLE \
     git://github.com/eclipse/kura;branch=develop;rev=KURA_${PV}_RELEASE;destsuffix=kura;name=kura \
-    file://org.eclipse.kura.linux.net_1.0.400.jar \
-    file://org.eclipse.kura.net.admin_1.0.400.jar \
     file://kura.service \
 "
 SRCREV_SolidSense-V1 = "d81fbbf5927f127de8d3445dd3facdcf730ec426"
