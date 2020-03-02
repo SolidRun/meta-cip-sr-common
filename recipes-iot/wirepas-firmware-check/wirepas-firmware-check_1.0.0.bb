@@ -21,8 +21,8 @@ do_compile_prepend () {
 do_install () {
     install -d ${D}${base_bindir}
     install -m 0755 ${S-V1}/wirepas/wirepas_firmware_check/wp-get-fw-version ${D}${base_bindir}/wp-get-fw-version
-    ln -s ${D}${base_bindir}/wp-get-fw-version ${D}${base_bindir}/sink1-get-version
-    ln -s ${D}${base_bindir}/wp-get-fw-version ${D}${base_bindir}/sink2-get-version
+    ln -s ${base_bindir}/wp-get-fw-version ${D}${base_bindir}/sink1-get-version
+    ln -s ${base_bindir}/wp-get-fw-version ${D}${base_bindir}/sink2-get-version
 }
 
 FILES_${PN} = " \
