@@ -11,7 +11,7 @@ SRC_URI = " \
     file://gpl-2.0.txt \
 "
 
-SRCREV_SolidSense-V1 = "b1e1916fa4be131cbc6ca5b1a385cb46f3b6550d"
+SRCREV_SolidSense-V1 = "45bf93ecae7cba6c4fc41ac1f8a46b25ce281fa2"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_install () {
