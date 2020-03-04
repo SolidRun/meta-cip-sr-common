@@ -9,7 +9,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-Modem_GPS_Service.git;protocol=ssh;branch=V1.1 \
 "
-SRCREV = "80c3281010739852af75e439e71f76ea091da151"
+SRCREV = "e9e6c4ae83438c5c4a2be90e10371f3bc63a1da4"
 S = "${WORKDIR}/git"
 
 SYSTEMD_SERVICE_${PN} = "modem_gps.service"
