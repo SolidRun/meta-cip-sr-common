@@ -7,13 +7,13 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=cb6bb17b0d0cca188339074207e9f4d8"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://github.com/SolidRun/gateway;branch=issue_435;name=gateway \
+    git://github.com/SolidRun/gateway;branch=maersk-dev;name=gateway \
     git://github.com/wirepas/c-mesh-api;destsuffix=git/sink_service/c-mesh-api;name=c-mesh-api \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
     git://git@github.com/SolidRun/SolidSense-kura-wirepas.git;protocol=ssh;branch=master;destsuffix=SolidSense-kura-wp;name=SolidSense-kura-wp \
 "
 
-SRCREV_gateway = "65f5f169ef859dd899c786033b3701d23c29ba88"
+SRCREV_gateway = "9397ac6e8ed7ae7d57cfaa562b15177d55147133"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
 SRCREV_SolidSense-V1 = "45bf93ecae7cba6c4fc41ac1f8a46b25ce281fa2"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
