@@ -11,6 +11,7 @@ HARDWARE_ALL=" \
 	solidsense \
 "
 IMAGE_SUFFIX=" \
+	manifest \
 	mender \
 	mender.bmap \
 	tar.gz \
