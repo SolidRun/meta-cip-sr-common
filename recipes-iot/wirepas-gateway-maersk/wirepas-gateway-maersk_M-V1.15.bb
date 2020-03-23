@@ -15,7 +15,7 @@ SRC_URI = " \
 
 SRCREV_gateway = "ee4177d4284b4b6b00b9ddeb5813d9f1034e2703"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "45bf93ecae7cba6c4fc41ac1f8a46b25ce281fa2"
+SRCREV_SolidSense-V1 = "65c775969b9e585665b269f7be491955552b4100"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
