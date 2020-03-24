@@ -61,6 +61,7 @@ FILES_${PN} = " \
     /opt/SolidSense/modem_gps/QuectelAT_Service.py \
     /opt/SolidSense/modem_gps/GPS_Service_Client.py \
     /opt/SolidSense/modem_gps/Test_Modem.py \
+    /opt/SolidSense/modem_gps/Trace_Modem.py \
     /opt/SolidSense/modem_gps/LICENSE \
     /opt/SolidSense/modem_gps/pynmea2/seatalk_utils.py \
     /opt/SolidSense/modem_gps/pynmea2/__init__.py \
