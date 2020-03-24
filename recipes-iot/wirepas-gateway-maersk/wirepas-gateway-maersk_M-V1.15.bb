@@ -15,7 +15,7 @@ SRC_URI = " \
 
 SRCREV_gateway = "e6f2256bcbd34373b43f21055bda676b11c71cf1"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "65c775969b9e585665b269f7be491955552b4100"
+SRCREV_SolidSense-V1 = "ba965a94c909a0581fd66c55c76acd84ba397c1a"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
@@ -91,14 +91,20 @@ do_install () {
     # Install the configure_node.py
     install -d ${D}/opt/SolidSense/wirepas
     install -m 0644 ${S-V1}/wirepas/scripts/configure_node.py ${D}/opt/SolidSense/wirepas/configure_node.py
-    install -d ${D}/${bindir}
+    install -d ${D}${bindir}
     install -m 0755 ${S-V1}/wirepas/scripts/configure_node.sh ${D}${bindir}/configure_node
 
     # Install the dbus_print_sink.py
     install -d ${D}/opt/SolidSense/wirepas
     install -m 0644 ${S-V1}/wirepas/scripts/dbus_print_sink.py ${D}/opt/SolidSense/wirepas/dbus_print_sink.py
-    install -d ${D}/${bindir}
+    install -d ${D}${bindir}
     install -m 0755 ${S-V1}/wirepas/scripts/read_sink.bash ${D}${bindir}/read_sink
+
+    # Install the sinkctl
+    install -d ${D}/opt/SolidSense/wirepas
+    install -m 0644 ${S-V1}/wirepas/scripts/sinkctl.py ${D}/opt/SolidSense/wirepas/sinkctl.py
+    install -d ${D}${bindir}
+    install -m 0755 ${S-V1}/wirepas/scripts/sinkctl.bash ${D}${bindir}/sinkctl
 
     # Install the dbus config
     install -d ${D}${sysconfdir}/dbus-1/system.d
