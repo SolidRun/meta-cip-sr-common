@@ -12,7 +12,7 @@ SRC_URI = " \
     file://kura-${PV}.tar.gz \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "65c775969b9e585665b269f7be491955552b4100"
+SRCREV_SolidSense-V1 = "66c5ad5629fdc72a1ebc31749da1c20b9d7c14fc"
 SRCREV_SolidSense-BLE = "bbf94215deeceeab1f368f758ed75841b9bb72a6"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-BLE = "${WORKDIR}/SolidSense-BLE"
