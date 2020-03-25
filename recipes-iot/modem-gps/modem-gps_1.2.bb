@@ -50,6 +50,7 @@ do_install () {
     rm -f ${D}/opt/SolidSense/modem_gps/modem_gps.service
     rm -f ${D}/opt/SolidSense/modem_gps/modem_status
     rm -f ${D}/opt/SolidSense/modem_gps/setup.py
+    rm -f ${D}/opt/SolidSense/modem_gps/modem_gps_check.sh
 }
 
 FILES_${PN} = " \
@@ -87,4 +88,5 @@ FILES_${PN} = " \
     /opt/SolidSense/modem_gps/pynmea2/types/proprietary/ash.py \
     /opt/SolidSense/modem_gps/pynmea2/types/proprietary/srf.py \
     /usr/bin/modem_status \
+    /opt/scripts/modem_gps_check \
 "
