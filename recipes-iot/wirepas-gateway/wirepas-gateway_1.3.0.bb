@@ -30,7 +30,7 @@ RDEPENDS_${PN} = " \
     python3 \
     python3-paho-mqtt \
     python3-pydbus \
-    python3-pyyaml (=5.1.1)\
+    python3-pyyaml (=5.1.2)\
     systemd \
     wirepas-firmware \
     wirepas-firmware-check \
