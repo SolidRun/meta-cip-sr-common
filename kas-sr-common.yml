@@ -85,7 +85,7 @@ local_conf_header:
 
     # Preferred applications
     PREFERRED_VERSION_kura = "4.0.0"
-    PREFERRED_VERSION_wirepas-gateway = "1.2.0"
+    PREFERRED_VERSION_wirepas-gateway = "1.3.0"
     PREFERRED_VERSION_wirepas-messaging = "1.2.0"
     PREFERRED_VERSION_python3-grpcio = "1.22.0"
     PREFERRED_VERSION_python3-protobuf = "3.9.0"
