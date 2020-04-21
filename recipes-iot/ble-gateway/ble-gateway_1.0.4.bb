@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = " \
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=master \
 "
-SRCREV = "bbf94215deeceeab1f368f758ed75841b9bb72a6"
+SRCREV = "dd555538d669c302bbfdb6d163c01d7ef1cd187d"
 S = "${WORKDIR}/git"
 PARALLEL_MAKE = ""
 
