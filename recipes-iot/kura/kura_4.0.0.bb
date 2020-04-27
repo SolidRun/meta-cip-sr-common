@@ -1,6 +1,6 @@
 SUMMARY = "Kura"
 DESCRIPTION = "Kura"
-LICENSE = "epl-v10"
+LICENSE = "EPL-1.0"
 LIC_FILES_CHKSUM = " \
     file://opt/eclipse/kura/epl-v10.html;md5=d0fc088e4e5216422c217d39853d8601 \
 "
