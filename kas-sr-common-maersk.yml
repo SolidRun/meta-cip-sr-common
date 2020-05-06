@@ -12,7 +12,7 @@ local_conf_header:
   meta-custom: |
     BB_NUMBER_THREADS ?= "${@oe.utils.cpu_count()}"
     PARALLEL_MAKE ?= "-j ${@oe.utils.cpu_count()}"
-    PACKAGE_CLASSES ?= "package_rpm"
+    PACKAGE_CLASSES ?= "package_ipk"
     EXTRA_IMAGE_FEATURES = "debug-tweaks"
     USER_CLASSES ?= "buildstats image-mklibs image-prelink"
     PATCHRESOLVE = "noop"
