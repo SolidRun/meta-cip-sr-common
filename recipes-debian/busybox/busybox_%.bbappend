@@ -6,6 +6,10 @@ SRC_URI += " \
 
 SYSTEMD_SERVICE_${PN}-syslog = ""
 
+do_install_prepend () {
+    sed -i "s/\/sbin\/init//" busybox.links.*
+}
+
 do_install_append () {
     install -d ${D}${sysconfdir}/cron/crontabs
     install -d ${D}/mnt/usb1
