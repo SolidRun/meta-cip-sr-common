@@ -25,7 +25,7 @@ RDEPENDS_${PN} = " \
     python3-chardet \
     python3-coverage \
     python3-docutils \
-    python3-grpcio (=1.22.0) \
+    python3-grpcio \
     python3-grpcio-tools \
     python3-idna \
     python3-imagesize \
@@ -36,7 +36,7 @@ RDEPENDS_${PN} = " \
     python3-packaging \
     python3-pluggy \
     python3-pockets \
-    python3-protobuf (=3.9.0) \
+    python3-protobuf \
     python3-pygments \
     python3-py \
     python3-pyparsing \
