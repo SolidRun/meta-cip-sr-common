@@ -1,0 +1,1 @@
+LICENSE = "GPLv2 & LGPLv3+ & GPLv3+"
