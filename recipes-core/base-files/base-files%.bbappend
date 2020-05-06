@@ -14,6 +14,7 @@ SRC_URI += " \
 do_install_append () {
     # Remove /usr/lib/os-release
     rm ${D}${libdir}/os-release
+    rm ${D}${sysconfdir}/os-release
 
     # Install updated hotss
     install -m 0644 ${WORKDIR}/hosts ${D}${sysconfdir}/hosts
