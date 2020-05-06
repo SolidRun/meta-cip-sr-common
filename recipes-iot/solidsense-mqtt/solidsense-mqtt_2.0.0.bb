@@ -6,9 +6,9 @@ LIC_FILES_CHKSUM = " \
 "
 
 SRC_URI = " \
-    git://github.com/SolidRun/SolidSense-MQTT.git;protocol=http;branch=master \
+    git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=master \
 "
-SRCREV = "c39b9961ddf74b41acbf97727f446b5610e88cc4"
+SRCREV = "891d3d7a791463095c624be0e34c13b5e4291582"
 S = "${WORKDIR}/git"
 
 SYSTEMD_SERVICE_${PN} = "solidsense-mqtt.service"
@@ -25,7 +25,7 @@ do_install () {
     chown -R root:root ${D}/opt/SolidSense/mqtt
 
     install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${S}/install/solidsense-mqtt.service ${D}${systemd_unitdir}/system
+    install -m 0644 ${S}/install/solidsense_mqtt.service ${D}${systemd_unitdir}/system/solidsense-mqtt.service
     sed -i -e 's,@SBINDIR@,${sbindir},g' \
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
         ${D}${systemd_unitdir}/system/solidsense-mqtt.service
