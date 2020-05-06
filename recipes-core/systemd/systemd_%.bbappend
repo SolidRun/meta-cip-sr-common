@@ -3,7 +3,6 @@ do_install_append () {
     install -d ${D}/data/.var/log/journal
 
     # Remove systemd init
-    rm ${D}/init
     rm ${D}/sbin/init
 }
 
