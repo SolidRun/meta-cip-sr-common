@@ -7,9 +7,13 @@ LIC_FILES_CHKSUM = " \
 
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=master \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 SRCREV = "891d3d7a791463095c624be0e34c13b5e4291582"
+SRCREV_SolidSense-V1 = "4e136dfa3303ec39b15be59e55dfbc5d56c1614f"
 S = "${WORKDIR}/git"
+S-V1 = "${WORKDIR}/SolidSense-V1"
+KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
 
 SYSTEMD_SERVICE_${PN} = "solidsense-mqtt.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "disable"
@@ -29,6 +33,11 @@ do_install () {
     sed -i -e 's,@SBINDIR@,${sbindir},g' \
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
         ${D}${systemd_unitdir}/system/solidsense-mqtt.service
+
+    # Install the SolidSense MQTT configuration service
+    install -d ${D}/${KURA_PATH}/data/packages
+    cp -a ${S-V1}/Kura/plugins/SolidsenseMqttService.dp \
+        ${D}${KURA_PATH}/data/packages
 }
 
 FILES_${PN} = " \
