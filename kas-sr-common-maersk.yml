@@ -82,6 +82,7 @@ local_conf_header:
     MENDER_FEATURES_ENABLE_append = " mender-uboot mender-image-sd"
     MENDER_FEATURES_DISABLE_append = " mender-grub mender-image-uefi"
     IMAGE_ROOTFS_EXCLUDE_PATH_append = " uboot"
+    MENDER_ARTIFACT_EXTRA_ARGS += "--no-checksum-provide"
 
     # Preferred applications
     PREFERRED_VERSION_kura = "4.0.0"
