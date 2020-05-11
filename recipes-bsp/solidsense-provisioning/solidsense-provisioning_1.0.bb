@@ -1,17 +1,14 @@
 SUMMARY = "Solidsense provisioning"
 DESCRIPTION = "Solidsense provisioning"
-LICENSE = "GPLv2+"
+LICENSE = "EPL-2.0"
 LIC_FILES_CHKSUM = " \
-    file://../gpl-2.0.txt;md5=b234ee4d69f5fce4486a80fdaf4a4263 \
+    file://../SolidSense-V1/LICENSE;md5=c7cc8aa73fb5717f8291fcec5ce9ed6c \
 "
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
-    file://gpl-2.0.txt \
 "
 
-SRCREV_SolidSense-V1 = "4e136dfa3303ec39b15be59e55dfbc5d56c1614f"
+SRCREV_SolidSense-V1 = "53ef37844e093e4e3dbcdd992fe8ba84ef941eb7"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_install () {
