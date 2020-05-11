@@ -21,6 +21,9 @@ PRODUCT="Solidsense"
 RELEASE="dev"
 RELEASE_DATE="$("${DATE}" "+%Y%m%d")"
 ITERATION="00"
+MENDER_ARTIFACT="/home/eric/bin/mender-artifact"
+MENDER_PRIVATE_KEY_FILE="/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/private.key"
+MENDER_PUBLIC_KEY_FILE="/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/public.key"
 
 # Pretty print
 NC="\\e[0m"
@@ -99,13 +102,95 @@ do_build () {
 	printf "\\n"
 }
 
+do_update_manifest () {
+	MANIFEST_FILE="${1}"
+	LICENSE_DIR="${2}"
+
+	while read -r pkg rest ; do
+		case "${pkg}" in
+			kernel-* )
+					echo "${pkg} ${rest} <GPL>"
+				;;
+			*-dev )
+				license_pkg="$(echo "$pkg" | sed 's/-dev//')"
+				if [ -d "${LICENSE_DIR}/${license_pkg}" ] ; then
+					RECIPE_INFO="${LICENSE_DIR}/${license_pkg}/recipeinfo"
+					license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+					echo "${pkg} ${rest} <${license}>"
+				else
+					echo "${pkg} ${rest} UNKNOWN"
+				fi
+				;;
+			*-*-* )
+				if [ -d "${LICENSE_DIR}/${pkg}" ] ; then
+					RECIPE_INFO="${LICENSE_DIR}/${pkg}/recipeinfo"
+					license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+					echo "${pkg} ${rest} <${license}>"
+				else
+					license_pkg="$(echo "${pkg}" | awk '{gsub("-", " "); print $1"-"$2}')"
+					if [ -d "${LICENSE_DIR}/${license_pkg}" ] ; then
+						RECIPE_INFO="${LICENSE_DIR}/${license_pkg}/recipeinfo"
+						license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+						echo "${pkg} ${rest} <${license}>"
+					else
+						license_pkg="$(echo "${pkg}" | awk '{gsub("-", " "); print $1}')"
+						if [ -d "${LICENSE_DIR}/${license_pkg}" ] ; then
+							RECIPE_INFO="${LICENSE_DIR}/${license_pkg}/recipeinfo"
+							license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+							echo "${pkg} ${rest} <${license}>"
+						else
+							echo "${pkg} ${rest} UNKNOWN"
+						fi
+					fi
+				fi
+				;;
+			*-* )
+				if [ -d "${LICENSE_DIR}/${pkg}" ] ; then
+					RECIPE_INFO="${LICENSE_DIR}/${pkg}/recipeinfo"
+					license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+					echo "${pkg} ${rest} <${license}>"
+				else
+					license_pkg="$(echo "${pkg}" | awk '{gsub("-", " "); print $1}')"
+					if [ -d "${LICENSE_DIR}/${license_pkg}" ] ; then
+						RECIPE_INFO="${LICENSE_DIR}/${license_pkg}/recipeinfo"
+						license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+						echo "${pkg} ${rest} <${license}>"
+					else
+						echo "${pkg} ${rest} UNKNOWN"
+					fi
+				fi
+				;;
+			* )
+				if [ -d "${LICENSE_DIR}/${pkg}" ] ; then
+					RECIPE_INFO="${LICENSE_DIR}/${pkg}/recipeinfo"
+					license="$(awk '/LICENSE/ {gsub("LICENSE: ", ""); print}' < "${RECIPE_INFO}")"
+					echo "${pkg} ${rest} <${license}>"
+				else
+					echo "${pkg} ${rest} UNKNOWN"
+				fi
+				;;
+		esac
+	done < "${MANIFEST_FILE}"
+}
+
 do_deploy_images () {
-	if [ ! -d "deploy/${VERSION}" ]; then
-		mkdir -p "deploy/${VERSION}"
+	dir_deploy="deploy/${VERSION}"
+
+	if [ ! -d "${dir_deploy}" ]; then
+		mkdir -p "${dir_deploy}"
 	fi
+
 	printf "Copying over images for${LIGHT_RED}%s${NC}\\n"
+
+	# Copy over the licenses
+	START="$(${DATE} +%s)"
+	printf "    ${RED}%s${NC}" "licenses"
+	rsync -avz build/tmp/deploy/licenses "${dir_deploy}" > /dev/null 2>&1
+	END="$(${DATE} +%s)"
+	duration="$(calc_duration "${START}" "${END}")"
+	printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+
 	for device in ${DEVICES}; do
-		dir_deploy="deploy/${VERSION}"
 		image_prefix_src="build/tmp/deploy/images/${device}/core-image-minimal-${device}"
 		image_prefix_dst="${dir_deploy}/${device}-core-image-minimal-${VERSION}"
 
@@ -119,13 +204,45 @@ do_deploy_images () {
 		for suffix in ${IMAGE_SUFFIX}; do
 			if [ -f "${image_prefix_src}.${suffix}" ]; then
 				cp "${image_prefix_src}.${suffix}" "${image_prefix_dst}.${suffix}"
+			else
+				printf "\\n\\n${RED}Error: ${NC} %s not found!" "${image_prefix_src}.${suffix}"
+				exit 1
 			fi
 		done
+
+		# Update manifest file
+		do_update_manifest "${image_prefix_src}.manifest" "${dir_deploy}/licenses" > "${image_prefix_dst}.manifest.lic"
+
 		END="$(${DATE} +%s)"
 		duration="$(calc_duration "${START}" "${END}")"
 		printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
 	done
+
 	printf "\\n"
+}
+
+do_deploy_sign_artifact () {
+	if [ ! -d "deploy/${VERSION}" ]; then
+		mkdir -p "deploy/${VERSION}"
+	fi
+	printf "Signing and verifying artifact for${LIGHT_RED}%s${NC}\\n"
+	for device in ${DEVICES}; do
+		dir_deploy="deploy/${VERSION}"
+		mender_artifact="${dir_deploy}/${device}-core-image-minimal-${VERSION}.mender"
+
+		if [ ! -d "${dir_deploy}" ]; then
+			mkdir -p "${dir_deploy}"
+		fi
+
+		# Sign and verify artifacts
+		printf "    ${RED}%s${NC}" "${device}"
+		START="$(${DATE} +%s)"
+		${MENDER_ARTIFACT} sign --key "${MENDER_PRIVATE_KEY_FILE}" "${mender_artifact}"
+		${MENDER_ARTIFACT} validate --key "${MENDER_PUBLIC_KEY_FILE}" "${mender_artifact}" > /dev/null 2>&1
+		END="$(${DATE} +%s)"
+		duration="$(calc_duration "${START}" "${END}")"
+		printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+	done
 }
 
 # main
@@ -200,6 +317,7 @@ else
 	fi
 	do_build
 	do_deploy_images
+	do_deploy_sign_artifact
 	FULL_END="$(${DATE} +%s)"
 	duration="$(calc_duration "${FULL_START}" "${FULL_END}")"
 	printf "That entire run took ${BOLD}${UNDERLINED}%s${NC}.\\n\\n" "${duration}"
