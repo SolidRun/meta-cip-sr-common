@@ -79,9 +79,6 @@ do_install () {
     # Remove WirepasConfigurationService.dp as install has been moved to wirepas-gateway{-maersk} recipe
     rm -f ${D}${KURA_PATH}/data/packages/WirepasConfigurationService.dp
 
-    # Install the ble-gateway Kura dp
-    cp -a ${S-BLE}/Install/BLEConfigurationService.dp ${D}${KURA_PATH}/data/packages
-
     # Install the log configuration service
     cp -a ${S-V1}/Kura/logs/com.solidsense.kura.LogConfigurationService/resources/dp/LogConfigurationService.dp \
         ${D}${KURA_PATH}/data/packages

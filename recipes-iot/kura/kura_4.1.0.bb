@@ -101,12 +101,6 @@ do_install () {
     install -d ${D}/opt/SolidSense/kura/config
     cp -arP ${S-V1}/Kura/Config/* ${D}/opt/SolidSense/kura/config/
 
-    # Install the ble-gateway Kura dp
-    #    TODO: create a conditional to only install this if the ble-gateway recipe is selected
-    cp -a ${S-BLE}/Install/BLEConfigurationService.dp ${D}${KURA_PATH}/data/packages
-    echo "BLEConfigurationService=file\:/opt/eclipse/kura/data/packages/BLEConfigurationService.dp" >> \
-            ${D}${KURA_PATH}/data/dpa.properties
-
     chown -R root:root ${D}/opt
 }
 
