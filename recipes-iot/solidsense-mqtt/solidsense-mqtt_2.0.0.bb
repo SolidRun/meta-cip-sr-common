@@ -29,10 +29,10 @@ do_install () {
     chown -R root:root ${D}/opt/SolidSense/mqtt
 
     install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${S}/install/solidsense_mqtt.service ${D}${systemd_unitdir}/system/solidsense-mqtt.service
+    install -m 0644 ${S}/install/solidsense_mqtt.service ${D}${systemd_unitdir}/system/solidsense_mqtt.service
     sed -i -e 's,@SBINDIR@,${sbindir},g' \
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
-        ${D}${systemd_unitdir}/system/solidsense-mqtt.service
+        ${D}${systemd_unitdir}/system/solidsense_mqtt.service
 
     # Install the SolidSense MQTT configuration service
     install -d ${D}/${KURA_PATH}/data/packages
