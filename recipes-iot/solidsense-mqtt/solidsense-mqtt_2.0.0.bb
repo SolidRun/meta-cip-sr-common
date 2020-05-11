@@ -15,7 +15,7 @@ S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
 
-SYSTEMD_SERVICE_${PN} = "solidsense-mqtt.service"
+SYSTEMD_SERVICE_${PN} = "solidsense_mqtt.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "disable"
 
 inherit systemd
