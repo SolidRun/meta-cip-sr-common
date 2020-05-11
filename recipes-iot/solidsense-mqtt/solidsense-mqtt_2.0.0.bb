@@ -9,7 +9,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=master \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV = "891d3d7a791463095c624be0e34c13b5e4291582"
+SRCREV = "21c1471b66ff05c99bdd4aa6c0967bdff408cbd5"
 SRCREV_SolidSense-V1 = "53ef37844e093e4e3dbcdd992fe8ba84ef941eb7"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
