@@ -12,11 +12,6 @@ SRCREV = "51ceac0852af2b6a8e5213426c0e9241d54437d5"
 S = "${WORKDIR}/git"
 PARALLEL_MAKE = ""
 
-SYSTEMD_SERVICE_${PN} = "bleTransport.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "disable"
-
-inherit systemd
-
 DEPENDS = " \
    glib-2.0-native \
    pkgconfig \
@@ -54,13 +49,6 @@ do_install () {
 
     # install initial config to backup location
     install -d ${D}/opt/SolidSense/.config/ble_gateway
-
-    # install systemd service file
-    install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${S}/Install/bleTransport.service ${D}${systemd_unitdir}/system
-    sed -i -e 's,@SBINDIR@,${sbindir},g' \
-        -e 's,@SYSCONFDIR@,${sysconfdir},g' \
-        ${D}${systemd_unitdir}/system/bleTransport.service
 
     # install bluepy-helper
     install -d ${D}/opt/SolidSense/bin
