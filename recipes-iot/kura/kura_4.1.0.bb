@@ -8,14 +8,11 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense;name=SolidSense-V1 \
-    git://git@github.com/SolidRun/SolidSense-BLE.git;protocol=ssh;branch=V1.0.3;destsuffix=SolidSense-BLE;name=SolidSense-BLE \
     git://github.com/eclipse/kura;branch=develop;rev=KURA_${PV}_RELEASE;destsuffix=kura;name=kura \
     file://kura.service \
 "
 SRCREV_SolidSense-V1 = "53ef37844e093e4e3dbcdd992fe8ba84ef941eb7"
-SRCREV_SolidSense-BLE = "5841bdc83078e00028dda1d1c52ff4b0979b1e38"
 S-V1 = "${WORKDIR}/SolidSense-V1"
-S-BLE = "${WORKDIR}/SolidSense-BLE"
 S-KURA = "${WORKDIR}/kura"
 KURA_PATH = "/opt/eclipse/kura_${PV}_solid_sense/"
 
