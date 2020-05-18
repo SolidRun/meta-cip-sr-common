@@ -125,9 +125,6 @@ do_build () {
 		START="$(${DATE} +%s)"
 		log="deploy/logs/${VERSION}/build-${device}-$(${DATE} +%Y%m%d-%H:%M)"
 		# Build using KAS
-		printf "    ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
-			"${device}" \
-			"${log}"
 		if [ -n "${CUSTOMER}" ]; then
 			if [ "${CUSTOMER}" = "test" ]; then
 				main_yml="kas-solidsense.yml"
@@ -142,6 +139,15 @@ do_build () {
 			exit 1
 		fi
 		device_yml="meta-cip-sr-${device}/kas-${device}.yml"
+		if [ ! -f "${device_yml}" ]; then
+			printf "\\nError file <%s> not found!\\n" "${device_yml}"
+			exit 1
+		fi
+		printf "    MENDER_ARTIFACT_NAME=%s kas build %s:%s\\n" \
+			"${VERSION}" "${main_yml}" "${device_yml}"
+		printf "        ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
+			"${device}" \
+			"${log}"
 		MENDER_ARTIFACT_NAME="${VERSION}" kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
 		ret="${?}"
 		END="$(${DATE} +%s)"
@@ -151,8 +157,8 @@ do_build () {
 		else
 			printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
 		fi
+		printf "\\n"
 	done
-	printf "\\n"
 }
 
 do_update_manifest () {
