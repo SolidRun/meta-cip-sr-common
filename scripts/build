@@ -16,25 +16,20 @@ IMAGE_SUFFIX=" \
 	mender.bmap \
 	tar.gz \
 "
-DEVICES="${HARDWARE_ALL}"
-PRODUCT="Solidsense"
-RELEASE="dev"
-RELEASE_DATE="$("${DATE}" "+%Y%m%d")"
-ITERATION="00"
 CONFIG_FILE="meta-cip-sr-common/scripts/build.conf"
 
 # initialize configuration array
 declare -A config
 config=(
 	[devices]="n6gq n6gsdl solidsense"
-	[product]="Solidsense"
-	[release]="dev"
-	[date]="$("${DATE}" "+%Y%m%d")"
-	[iteration]="00"
+	[product]=Solidsense
+	[release]=dev
+	[date]=$("${DATE}" "+%Y%m%d")
+	[iteration]=00
 	[customer]=""
 	[mender_artifact]=/home/eric/bin/mender-artifact
-	[mender_private_key_file]="/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/private.key"
-	[mender_public_key_file]="/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/public.key"
+	[mender_private_key_file]=/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/private.key
+	[mender_public_key_file]=/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/public.key
 )
 
 # Pretty print
@@ -85,7 +80,7 @@ override_config_file_values () {
 	if [ -n "${RELEASE}" ]; then
 		config[release]="${RELEASE}"
 	fi
-	if [ -n "${DATE}" ]; then
+	if [ -n "${RELEASE_DATE}" ]; then
 		config[date]="${DATE}"
 	fi
 	if [ -n "${ITERATION}" ]; then
@@ -105,6 +100,9 @@ find_customer () {
 		test )
 			echo "T"
 			;;
+		[[:alpha:]]* )
+			echo "${cust}" | cut --bytes=1 | tr '[:lower:]' '[:upper:]'
+			;;
 		* )
 			echo ""
 			;;
@@ -123,17 +121,25 @@ do_build () {
 		mkdir -p "deploy/logs/${VERSION}"
 	fi
 	printf "\\nBuilding version ${LIGHT_GREEN}%s${NC}\\n" "${VERSION}"
-	for device in ${DEVICES}; do
+	for device in ${config[devices]}; do
 		START="$(${DATE} +%s)"
 		log="deploy/logs/${VERSION}/build-${device}-$(${DATE} +%Y%m%d-%H:%M)"
 		# Build using KAS
 		printf "    ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
 			"${device}" \
 			"${log}"
-		if [ -n "${CUSTOMER}" ] && [ "${CUSTOMER}" = "maersk" ]; then
-			main_yml="kas-solidsense-maersk.yml"
+		if [ -n "${CUSTOMER}" ]; then
+			if [ "${CUSTOMER}" = "test" ]; then
+				main_yml="kas-solidsense.yml"
+			else
+				main_yml="kas-solidsense-${CUSTOMER}.yml"
+			fi
 		else
 			main_yml="kas-solidsense.yml"
+		fi
+		if [ ! -f "${main_yml}" ]; then
+			printf "\\nError file <%s> not found!\\n" "${main_yml}"
+			exit 1
 		fi
 		device_yml="meta-cip-sr-${device}/kas-${device}.yml"
 		MENDER_ARTIFACT_NAME="${VERSION}" kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
@@ -242,7 +248,7 @@ do_deploy_images () {
 	duration="$(calc_duration "${START}" "${END}")"
 	printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
 
-	for device in ${DEVICES}; do
+	for device in ${config[devices]}; do
 		image_prefix_src="build/tmp/deploy/images/${device}/core-image-minimal-${device}"
 		image_prefix_dst="${dir_deploy}/${device}-core-image-minimal-${VERSION}"
 
@@ -278,7 +284,7 @@ do_deploy_sign_artifact () {
 		mkdir -p "deploy/${VERSION}"
 	fi
 	printf "Signing and verifying artifact for${LIGHT_RED}%s${NC}\\n"
-	for device in ${DEVICES}; do
+	for device in ${config[devices]}; do
 		dir_deploy="deploy/${VERSION}"
 		mender_artifact="${dir_deploy}/${device}-core-image-minimal-${VERSION}.mender"
 
@@ -313,7 +319,6 @@ do
 			if [ "${1}" = "all" ]; then
 				DEVICES="${HARDWARE_ALL}"
 			else
-				#DEVICES=$(echo "${1}" | sed 's/,/ /g')
 				DEVICES="${1//,/' '}"
 			fi
 			;;
@@ -373,14 +378,14 @@ else
 	fi
 	FULL_START="$(${DATE} +%s)"
 	if [ -n "${CUSTOMER_VER}" ] ; then
-		VERSION="${PRODUCT}-${CUSTOMER_VER}${RELEASE}-${RELEASE_DATE}${ITERATION}"
+		VERSION="${config[product]}-${CUSTOMER_VER}${config[release]}-${config[date]}${config[iteration]}"
 	else
-		VERSION="${PRODUCT}-${RELEASE}-${RELEASE_DATE}${ITERATION}"
+		VERSION="${config[product]}-${config[release]}-${config[date]}${config[iteration]}"
 	fi
 	do_build
 	do_deploy_images
 	do_deploy_sign_artifact
 	FULL_END="$(${DATE} +%s)"
 	duration="$(calc_duration "${FULL_START}" "${FULL_END}")"
-	printf "That entire run took ${BOLD}${UNDERLINED}%s${NC}.\\n\\n" "${duration}"
+	printf "\\nThat entire run took ${BOLD}${UNDERLINED}%s${NC}.\\n\\n" "${duration}"
 fi
