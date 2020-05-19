@@ -17,7 +17,14 @@ create_etc_solidsense () {
 	${log_it} "Creating ${solidsense_file}"
 	for entry in ${mmc_output}
 	do
-		echo "${entry}" >> ${solidsense_file}
+		echo "${entry}" | grep -q '='
+		is_valid="$?"
+		if [ ${is_valid} -eq 1 ]
+		then
+			${log_it} "Error: Invalid RPMB entry <${entry}>."
+		else
+			echo "${entry}" >> ${solidsense_file}
+		fi
 	done
 }
 
