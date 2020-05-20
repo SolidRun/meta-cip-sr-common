@@ -14,7 +14,7 @@ SRC_URI = " \
 
 SRCREV_gateway = "466a78d40ec85af7391a81d19c996c2c8dca6c46"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "53ef37844e093e4e3dbcdd992fe8ba84ef941eb7"
+SRCREV_SolidSense-V1 = "a31f0edd32d684403e924480f851e5380b6a59e2"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
