@@ -81,7 +81,7 @@ override_config_file_values () {
 		config[release]="${RELEASE}"
 	fi
 	if [ -n "${RELEASE_DATE}" ]; then
-		config[date]="${DATE}"
+		config[date]="${RELEASE_DATE}"
 	fi
 	if [ -n "${ITERATION}" ]; then
 		config[iteration]="${ITERATION}"
@@ -342,7 +342,7 @@ do
 			;;
 		-i|--iteration )
 			shift
-			ITERATION="$(printf "%02d" "${1}")"
+			ITERATION="$(printf "%02d" "$(( 10#${1}))")"
 			;;
 		-c|--customer )
 			shift
