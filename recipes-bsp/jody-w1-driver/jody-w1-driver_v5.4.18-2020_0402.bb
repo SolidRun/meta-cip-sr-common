@@ -11,6 +11,7 @@ inherit module-base
 
 SRC_URI = " \
     https://community.cypress.com/servlet/JiveServlet/download/19375-1-53475/cypress-fmac-${PV}.zip;name=cypress \
+    file://jody-w167.nvram \
 "
 
 SRC_URI[cypress.md5sum] = "7a44eb0174ae8582c2a8b528bedd4e3d"
