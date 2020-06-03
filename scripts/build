@@ -26,7 +26,7 @@ config=(
 	[release]=dev
 	[date]=$("${DATE}" "+%Y%m%d")
 	[iteration]=00
-	[customer]=""
+	[variant]=""
 	[mender_artifact]=/home/eric/bin/mender-artifact
 	[mender_private_key_file]=/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/private.key
 	[mender_public_key_file]=/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/public.key
@@ -50,8 +50,8 @@ usage () {
 	echo "    -r|--release <release version>                :default is <${config[release]}>"
 	echo "    -d|--date <date>                              :default is <${config[date]}>"
 	echo "    -i|--iteration <iteration>                    :default is <${config[iteration]}>"
-	echo "    -c|--customer <customer>                      :default is no specific customer"
-	echo "    -C|--config <config>                          :default is <${CONFIG_FILE}>"
+	echo "    -v|--variant <variant>                        :default is no specific variant"
+	echo "    -c|--config <config>                          :default is <${CONFIG_FILE}>"
 	echo "    -h|--help"
 	echo ""
 	exit 1
@@ -86,14 +86,14 @@ override_config_file_values () {
 	if [ -n "${ITERATION}" ]; then
 		config[iteration]="${ITERATION}"
 	fi
-	if [ -n "${CUSTOMER}" ]; then
-		config[customer]="${CUSTOMER}"
+	if [ -n "${VARIANT}" ]; then
+		config[variant]="${VARIANT}"
 	fi
 }
 
-find_customer () {
-	cust="${1}"
-	case "${cust}" in
+find_variant () {
+	variant="${1}"
+	case "${variant}" in
 		maersk )
 			echo "M"
 			;;
@@ -101,7 +101,7 @@ find_customer () {
 			echo "T"
 			;;
 		[[:alpha:]]* )
-			echo "${cust}" | cut --bytes=1 | tr '[:lower:]' '[:upper:]'
+			echo "${variant}" | cut --bytes=1 | tr '[:lower:]' '[:upper:]'
 			;;
 		* )
 			echo ""
@@ -124,12 +124,12 @@ do_build () {
 	for device in ${config[devices]}; do
 		START="$(${DATE} +%s)"
 		log="deploy/logs/${VERSION}/build-${device}-$(${DATE} +%Y%m%d-%H:%M)"
-		# Build using KAS
-		if [ -n "${CUSTOMER}" ]; then
-			if [ "${CUSTOMER}" = "test" ]; then
+		# determine variant
+		if [ -n "${VARIANT}" ]; then
+			if [ "${VARIANT}" = "test" ]; then
 				main_yml="kas-solidsense.yml"
 			else
-				main_yml="kas-solidsense-${CUSTOMER}.yml"
+				main_yml="kas-solidsense-${VARIANT}.yml"
 			fi
 		else
 			main_yml="kas-solidsense.yml"
@@ -138,11 +138,13 @@ do_build () {
 			printf "\\nError file <%s> not found!\\n" "${main_yml}"
 			exit 1
 		fi
+		# check if device yaml exists
 		device_yml="meta-cip-sr-${device}/kas-${device}.yml"
 		if [ ! -f "${device_yml}" ]; then
 			printf "\\nError file <%s> not found!\\n" "${device_yml}"
 			exit 1
 		fi
+		# Build using KAS
 		printf "    MENDER_ARTIFACT_NAME=%s kas build %s:%s\\n" \
 			"${VERSION}" "${main_yml}" "${device_yml}"
 		printf "        ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
@@ -311,7 +313,7 @@ do_deploy_sign_artifact () {
 
 # main
 
-options=$(getopt -l "help,hardware:,product:,release:,date:,iteration:,customer:,config:" -o "hH:p:r:d:i:c:C:" -- "${@}")
+options=$(getopt -l "help,hardware:,product:,release:,date:,iteration:,variant:,config:" -o "hH:p:r:d:i:v:c:" -- "${@}")
 eval set -- "${options}"
 
 while true
@@ -344,12 +346,12 @@ do
 			shift
 			ITERATION="$(printf "%02d" "$(( 10#${1}))")"
 			;;
-		-c|--customer )
+		-v|--variant )
 			shift
-			CUSTOMER="${1}"
-			CUSTOMER_VER="$(find_customer "${1}")"
+			VARIANT="${1}"
+			VARIANT_VER="$(find_variant "${1}")"
 			;;
-		-C|--config )
+		-c|--config )
 			CONFIG_FILE="${1}"
 			;;
 		\? )
@@ -383,8 +385,8 @@ else
 		exit 1
 	fi
 	FULL_START="$(${DATE} +%s)"
-	if [ -n "${CUSTOMER_VER}" ] ; then
-		VERSION="${config[product]}-${CUSTOMER_VER}${config[release]}-${config[date]}${config[iteration]}"
+	if [ -n "${VARIANT_VER}" ] ; then
+		VERSION="${config[product]}-${VARIANT_VER}${config[release]}-${config[date]}${config[iteration]}"
 	else
 		VERSION="${config[product]}-${config[release]}-${config[date]}${config[iteration]}"
 	fi
