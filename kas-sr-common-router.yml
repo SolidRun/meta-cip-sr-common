@@ -1,0 +1,84 @@
+# Copyright (C) 2016-2017, Solidrun, Eric Bree <eric.bree@solid-run.com>
+# SPDX-License-Identifier:	MIT
+# CIP core kas solidsense configuration
+header:
+    version: 7
+bblayers_conf_header:
+  meta-custom: |
+    LCONF_VERSION = "6"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+local_conf_header:
+  meta-custom: |
+    BB_NUMBER_THREADS ?= "${@oe.utils.cpu_count()}"
+    PARALLEL_MAKE ?= "-j ${@oe.utils.cpu_count()}"
+    PACKAGE_CLASSES ?= "package_ipk"
+    EXTRA_IMAGE_FEATURES = "debug-tweaks"
+    USER_CLASSES ?= "buildstats image-mklibs image-prelink"
+    PATCHRESOLVE = "noop"
+    BB_DISKMON_DIRS = "\
+        STOPTASKS,${TMPDIR},1G,100K \
+        STOPTASKS,${DL_DIR},1G,100K \
+        STOPTASKS,${SSTATE_DIR},1G,100K \
+        ABORT,${TMPDIR},100M,1K \
+        ABORT,${DL_DIR},100M,1K \
+        ABORT,${SSTATE_DIR},100M,1K"
+    CONF_VERSION = "1"
+    DL_DIR ?= "/home/eric/work.kingcheese/downloads"
+
+    # Remove warnings
+    WARN_QA_remove = "host-user-contaminated"
+
+    # Add distro features
+    DISTRO_FEATURES_append += "ipv6 systemd virtualization"
+    VIRTUAL-RUNTIME_init_manager = "systemd"
+    DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
+    VIRTUAL-RUNTIME_initscripts = ""
+    
+    # Enable read only rootfs
+    IMAGE_INSTALL_append += "initscripts-readonly-rootfs-overlay"
+
+    # Set users and passwords
+    INHERIT += "extrausers"
+    EXTRA_USERS_PARAMS = " \
+        usermod --password \
+        '\$6\$O6mi4EVySr\$iRTUoo7yhQEGoxtl3.46Ljhy2c/RHNyUS0/9JIq2nFxkPTTEJSKNwoVlQz7Ce.o4WYDbRMOkUMaDMgdGNhPgC/' \
+        root; \
+    "
+    EXTRA_USERS_PARAMS += " \
+        useradd --password \
+        '\$6\$IIvhzAmkoq\$fx6DpxdQaBFlGclWrfc5zm.jCDu//UyCUaaVybwhnmywTMhXoblZEE9e1pnAYxNWzW2PczBagHfOZrP/k0XA21' \
+        -G dialout,sudo,audio,video -d /data/solidsense solidsense \
+    "
+
+    #
+    # Install zimage, dtb and kernel modules
+    #
+    IMAGE_INSTALL_append += "kernel-devicetree kernel-image-zimage kernel-modules jody-w1-driver"
+    IMAGE_INSTALL_append += "firmware-wireless-wilink8 kernel-firmware-sdma-imx6q"
+
+    # Add additional packages
+    IMAGE_INSTALL_append += "openssh mmc-utils solidsense-scripts sudo"
+    IMAGE_INSTALL_append += "docker python3-docker-compose u-boot-fw-utils util-linux"
+    IMAGE_INSTALL_append += "dhcp-client tzdata raspap-webgui"
+    IMAGE_INSTALL_append += "tzdata"
+
+    # Factory
+    IMAGE_INSTALL_append += "empty picocom"
+
+    # Temporary additional packages
+    IMAGE_INSTALL_append += "wpa-supplicant wireless-regdb iw hostapd"
+    IMAGE_INSTALL_append += "nfs-utils dhcp-server bind"
+    IMAGE_INSTALL_append += "cronie openvpn openssl-bin"
+    #     Debug
+    # IMAGE_INSTALL_append += "gdb strace tcpdump"
+
+    # Mender
+    INHERIT += "mender-full"
+    PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils"
+    MENDER_FEATURES_ENABLE_append = " mender-uboot mender-image-sd"
+    MENDER_FEATURES_DISABLE_append = " mender-grub mender-image-uefi"
+    IMAGE_ROOTFS_EXCLUDE_PATH_append = " uboot"
+    MENDER_ARTIFACT_EXTRA_ARGS += "--no-checksum-provide"
+
+    # Preferred applications
