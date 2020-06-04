@@ -30,6 +30,7 @@ config=(
 	[mender_artifact]=/home/eric/bin/mender-artifact
 	[mender_private_key_file]=/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/private.key
 	[mender_public_key_file]=/home/eric/work.kingcheese/Solidrun/solidsense/signing-private-keys/public.key
+	[mender_server_url]=https://mender.solidsense.io
 )
 
 # Pretty print
@@ -145,12 +146,13 @@ do_build () {
 			exit 1
 		fi
 		# Build using KAS
-		printf "    MENDER_ARTIFACT_NAME=%s kas build %s:%s\\n" \
-			"${VERSION}" "${main_yml}" "${device_yml}"
+		printf "    MENDER_ARTIFACT_NAME=%s MENDER_SERVER_URL=%s kas build %s:%s\\n" \
+			"${VERSION}" "${config[mender_server_url]}" "${main_yml}" "${device_yml}"
 		printf "        ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
 			"${device}" \
 			"${log}"
-		MENDER_ARTIFACT_NAME="${VERSION}" kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
+		MENDER_ARTIFACT_NAME="${VERSION}" MENDER_SERVER_URL="${config[mender_server_url]}" \
+			kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
 		ret="${?}"
 		END="$(${DATE} +%s)"
 		duration="$(calc_duration "${START}" "${END}")"
