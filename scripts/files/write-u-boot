@@ -1,0 +1,66 @@
+#!/bin/sh
+
+# Global variables
+UBOOT_SPL="/flash/u-boot-with-spl.imx"
+BOOT0_DEV="/dev/mmcblk2boot0"
+BOOT0_SYS="/sys/block/mmcblk2boot0/force_ro"
+BLOCK_DEV="/dev/mmcblk2"
+MMC="$(command -vp mmc)"
+
+# Pretty print
+NC="\\e[0m"
+RED="\\e[31m"
+
+# functions
+check_file () {
+	file="${1}"
+	if [ ! -f "${file}" ]; then
+		printf "file not found: ${RED}%s${NC}\n" "${file}"
+		return 1
+	else
+		return 0
+	fi
+}
+
+check_files () {
+	ret=0
+	ret="$(check_file "${UBOOT_SPL}")"
+	if [ "${ret}" ]; then
+		exit 1
+	fi
+}
+
+check_part_conf () {
+	partconf_value="$(${MMC} extcsd read ${BLOCK_DEV} | awk '/PARTITION_CONFIG/ {a = sub(/\]/,"",$5); print $5}')"
+	if [ "${partconf_value}" = "0x48" ]; then
+		echo "Found good PARTITION_CONFIG of ${partconf_value}"
+	else
+		echo "Setting up PARTITION_CONFIG"
+		${MMC} bootpart enable 1 1 ${BLOCK_DEV}
+	fi
+}
+
+write_u_boot () {
+	# disable read only for mmcblk2boot0
+	echo 0 > "${BOOT0_SYS}"
+
+	# zero out mmcblk2boot0
+	echo "Zeroing out ${BOOT0_DEV}"
+	dd if=/dev/zero of="${BOOT0_DEV}" bs=1k seek=0 count=4096
+
+	# write u-boot spl
+	echo "Writing ${UBOOT_SPL} to ${BOOT0_DEV}"
+	dd if="${UBOOT_SPL}" of="${BOOT0_DEV}" bs=1k seek=1 conv=sync
+
+	# reenable read only for mmbclk2boot0
+	echo 1 > "${BOOT0_SYS}"
+
+	# zero out U-Boot ENV
+	echo "Zeroing out U-Boot ENV on ${BLOCK_DEV}"
+	dd if=/dev/zero of="${BLOCK_DEV}" bs=1k seek=1008 count=16
+}
+
+# main
+check_files
+check_part_conf
+write_u_boot

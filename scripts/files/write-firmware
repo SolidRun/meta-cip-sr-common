@@ -1,0 +1,222 @@
+#!/bin/sh
+
+# Global variables
+LOGFILE=/tmp/log$$
+ROOT_DEV="/dev/mmcblk2"
+firmware=""
+
+# functions
+partition_disk () {
+	# Zero out partition
+	sgdisk --zap-all "${ROOT_DEV}"
+	ret="${?}"
+	case ${ret} in
+		1)
+			echo "Two few arguments"
+			exit 1
+			;;
+		2)
+			echo "An error occured while reading the parition table"
+			exit 2
+			;;
+		3)
+			echo "Non-GPT disk detected and no -q option, but operation requires a write action"
+			exit 3
+			;;
+		4)
+			echo "An error prevented saving changes"
+			exit 4
+			;;
+		5)
+			echo "An error occurred while reading standard input (should never occur with sgdisk, but may with gdisk"
+			exit 5
+			;;
+		8)
+			echo "Disk replication operation (-R) failed"
+			exit 8
+			;;
+	esac
+
+	# Pause to ensure disk is not in use
+	sleep 1
+
+	# Partition the disk
+	label_id=$(tr -dc 'a-h0-9' < /dev/urandom | fold -w 8 | head -n 1)
+	if [ "$(wc -c "${label_id}")" -ne 9 ]
+	then
+		echo "Unable to create valid label_id: ${label_id}"
+		exit 1
+	fi
+	sfdisk --quiet --force "${ROOT_DEV}" << END
+label: dos
+label-id: ${label_id}
+device: ${ROOT_DEV}
+unit: sectors
+
+${ROOT_DEV}p1 : start=        2048, size=     3121152, type=83
+${ROOT_DEV}p2 : start=     3123200, size=     3121152, type=83
+${ROOT_DEV}p3 : start=     6244352, size=      131072, type=83
+${ROOT_DEV}p4 : start=     6375424, size=     8960000, type=83
+END
+	ret="${?}"
+	if [ "${ret}" -ne 0 ]
+	then
+		echo "Partition of ${ROOT_DEV} failed via sfdisk: ${ret}"
+		exit "${ret}"
+	fi
+}
+
+handle_ret () {
+	prog="${1}"
+	partition="${2}"
+	ret="${3}"
+	if [ "${ret}" -ne 0 ]
+	then
+		echo "${prog} of ${partition} failed: ${ret}"
+		exit "${ret}"
+	fi
+}
+
+mkfs () {
+	mkfs.ext4 -F -L rootfs1 "${ROOT_DEV}p1"
+	handle_ret "mkfs.ext4" "${ROOT_DEV}p1" "${?}"
+	mkfs.ext4 -F -L rootfs2 "${ROOT_DEV}p2"
+	handle_ret "mkfs.ext4" "${ROOT_DEV}p2" "${?}"
+	mkfs.ext4 -F -L config "${ROOT_DEV}p3"
+	handle_ret "mkfs.ext4" "${ROOT_DEV}p3" "${?}"
+	mkfs.ext4 -F -L docker "${ROOT_DEV}p4"
+	handle_ret "mkfs.ext4" "${ROOT_DEV}p4" "${?}"
+}
+
+fsck () {
+	fsck.ext4 -p "${ROOT_DEV}p1"
+	handle_ret "fsck.ext4" "${ROOT_DEV}p1" "${?}"
+	fsck.ext4 -p "${ROOT_DEV}p2"
+	handle_ret "fsck.ext4" "${ROOT_DEV}p2" "${?}"
+	fsck.ext4 -p "${ROOT_DEV}p3"
+	handle_ret "fsck.ext4" "${ROOT_DEV}p3" "${?}"
+	fsck.ext4 -p "${ROOT_DEV}p4"
+	handle_ret "fsck.ext4" "${ROOT_DEV}p4" "${?}"
+}
+
+write_rootfs () {
+	mkdir -p /mnt/rootfs1
+	handle_ret "mkdir" "/mnt/rootfs1" "${?}"
+	mkdir -p /mnt/rootfs2
+	handle_ret "mkdir" "/mnt/rootfs1" "${?}"
+
+	mount -t ext4 "${ROOT_DEV}p1" /mnt/rootfs1
+	handle_ret "mount" "${ROOT_DEV}p1" "${?}"
+	mkdir -p /mnt/rootfs1/data
+	handle_ret "mkdir" "/mnt/rootfs1/data" "${?}"
+	mount -t ext4 "${ROOT_DEV}p2" /mnt/rootfs2
+	handle_ret "mount" "${ROOT_DEV}p2" "${?}"
+	mkdir -p /mnt/rootfs2/data
+	handle_ret "mkdir" "/mnt/rootfs2/data" "${?}"
+
+	mount -t ext4 "${ROOT_DEV}p4" /mnt/rootfs1/data
+	handle_ret "mount" "${ROOT_DEV}p4" "${?}"
+
+	tar -xvf "${firmware}" -C /mnt/rootfs1/
+	handle_ret "tar" "${firmware}" "${?}"
+	tar -xvf "${firmware}" -C /mnt/rootfs2/
+	handle_ret "tar" "${firmware}" "${?}"
+	# Remove extraneous data in /data
+	rm -rf /mnt/rootfs2/data
+	handle_ret "rm -rf" "/mnt/rootfs2/data" "${?}"
+	mkdir -p /mnt/rootfs2/data
+	handle_ret "mkdir" "/mnt/rootfs2/data" "${?}"
+
+	sync
+
+	umount /mnt/rootfs1/data
+	handle_ret "unmount" "/mnt/rootfs1/data" "${?}"
+	umount /mnt/rootfs1
+	handle_ret "unmount" "/mnt/rootfs1" "${?}"
+	umount /mnt/rootfs2
+	handle_ret "unmount" "/mnt/rootfs2" "${?}"
+}
+
+find_firmware_file () {
+	type="$(tr -d '\000' < /proc/device-tree/model)"
+	case "${type}" in
+		"SolidRun HummingBoard2 Solo/DualLite (1.5som+emmc)" )
+			hardware="n6gsdl"
+			;;
+		"SolidRun HummingBoard2 Dual/Quad (1.5som+emmc)" )
+			hardware="n6gq"
+			;;
+		* )
+			echo "Hardware type <${type}> not found!"
+			exit 1
+			;;
+	esac
+
+	for file in $(echo /flash/*.tar.gz) ; do
+		if basename "${file}" | grep -q "${hardware}" ; then
+			firmware="${file}"
+		fi
+	done
+	echo "${firmware}"
+}
+
+usage () {
+	echo "$(basename "${0}") [-h|--help] [-b|--boot] <OS tar.gz file>"
+	echo "    -h|--help    print help"
+	echo "    -b|--boot    run from init script, automatically determines <OS tar.gz file>"
+	exit 1
+}
+
+# main
+
+options=$(getopt -l "help,boot" -o "hb" -- "${@}")
+eval set -- "${options}"
+
+while true
+do
+	case "${1}" in
+		-h|--help )
+			usage
+			;;
+		-b|--boot )
+			firmware="$(find_firmware_file)"
+			shift
+			break
+			;;
+		\? )
+			usage
+			;;
+		: )
+			echo "Invalid option: ${OPTARG} requires an argument" 1>&2
+			;;
+		-- )
+			shift
+			break
+			;;
+		* )
+			usage
+			;;
+	esac
+	shift
+done
+
+if [ ${#} -ne 1 ] || [ -z "${firmware}" ]; then
+	usage
+	echo "usage: $(basename "${0}") 'OS tar.gz file'"
+	exit 1
+else
+	if [ -z "${firmware}" ]; then
+		firmware="${1}"
+	fi
+fi
+
+echo "Flashing with ${firmware}."
+{
+	partition_disk
+	mkfs
+	fsck
+	write_rootfs
+} > ${LOGFILE} 2>&1
+
+echo "SUCCESS"
+exit 0

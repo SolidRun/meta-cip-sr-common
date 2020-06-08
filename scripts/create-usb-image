@@ -1,0 +1,217 @@
+#!/bin/sh
+
+# Commands
+DATE="$(command -vp date)"
+
+# Global variables
+NEEDED_PROGRAMS="awk dd fdisk fold head kpartx sfdisk rsync tr"
+PROG_NAME="$(basename "${0}")"
+DIR_NAME="$(dirname "${0}")"
+VERSION=""
+VERSION_BASE=""
+OUTPUT_IMG=""
+FILE_FLASH_INIT="${DIR_NAME}/files/flash.init"
+FILE_WRITE_FIRMWARE="${DIR_NAME}/files/write-firmware"
+FILE_WRITE_U_BOOT="${DIR_NAME}/files/write-u-boot"
+UBOOT_IMAGE="u-boot-with-spl.imx"
+UBOOT_IMAGE_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${UBOOT_IMAGE}"
+WIC_IMAGE="core-image-full-cmdline-solidrun-imx6-20200119211133.rootfs.wic"
+WIC_IMAGE_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${WIC_IMAGE}"
+HARDWARE=" \
+	n6gq \
+	n6gsdl \
+"
+MOUNT_DIR1="/mnt/rootfs1"
+MOUNT_DIR2="/mnt/rootfs2"
+FLASH_DIR="${MOUNT_DIR1}/flash"
+EXTLINUX_CONF_FILE="${MOUNT_DIR1}/boot/extlinux/extlinux.conf"
+
+# Pretty print
+NC="\\e[0m"
+RED="\\e[31m"
+
+# functions
+usage () {
+	printf "%s <VERSION>\\n" "${PROG_NAME}"
+	printf "\\n"
+	printf "\\texample: %s Solidsense-V0.01-2019060600\\n" "${PROG_NAME}"
+	exit 1
+}
+
+check_needed_programs () {
+	EXIT=0
+
+	for prog in ${NEEDED_PROGRAMS}; do
+		if [ -z "$(command -vp "${prog}")" ] ; then
+			echo "Please install: ${prog}"
+			EXIT=1
+		fi
+	done
+
+	if [ ${EXIT} -eq 1 ]; then
+		exit 1
+	fi
+}
+
+calc_duration () {
+	time_start="${1}"
+	time_end="${2}"
+
+	echo $((time_end-time_start)) | awk '{printf("%02d:%02d:%02d\n", int($1/3600), int($1/60%60), int($1%60))}'
+}
+
+check_file () {
+	file="${1}"
+	if [ ! -f "${file}" ]; then
+		printf "file not found: ${RED}%s${NC}\\n" "${file}"
+		return 1
+	else
+		return 0
+	fi
+}
+
+check_files () {
+	failed=0
+	failed=$(check_file "${UBOOT_IMAGE}")
+	failed=$(check_file "${WIC_IMAGE}")
+	if [ ! -f "${UBOOT_IMAGE}" ]; then
+		echo "Downloading ${UBOOT_IMAGE} from ${UBOOT_IMAGE_URL}"
+		wget "${UBOOT_IMAGE_URL}" > /dev/null 2>&1
+	fi
+	if [ ! -f "${WIC_IMAGE}" ]; then
+		echo "Downloading ${WIC_IMAGE} from ${WIC_IMAGE_URL}"
+		wget "${WIC_IMAGE_URL}" > /dev/null 2>&1
+	fi
+	for device in ${HARDWARE}; do
+		file="${VERSION}/${device}-core-image-minimal-${VERSION_BASE}.tar.gz"
+		failed=$(check_file "${file}")
+	done
+
+	if [ "${failed}" ]; then
+		exit 1
+	fi
+}
+
+create_image_file () {
+	# Create the image file
+	dd if=/dev/zero of="${OUTPUT_IMG}" bs=1G count=0 seek=1 >/dev/null 2>&1
+
+	# Partition the disk
+	label_id="$(tr -dc 'a-h0-9' < /dev/urandom | fold -w 8 | head -n 1)"
+	if [ "${#label_id}" -ne 8 ]; then
+		echo "Unable to create valid label_id: ${label_id}"
+		exit 1
+	fi
+	sudo sfdisk --quiet --force "${OUTPUT_IMG}" << END
+label: dos
+label-id: ${label_id}
+device: ${OUTPUT_IMG}
+unit: sectors
+
+${OUTPUT_IMG} : start=        2048, size=     2095104, type=83
+END
+	ret="${?}"
+	if [ "${ret}" -ne 0 ]; then
+		printf "Partitioning of ${RED}%s${NC} failed via sfdisk: ${RED}%s${NC}\\n" "${OUTPUT_IMG}" "${ret}"
+		exit "${ret}"
+	fi
+
+	# loop mount image file
+	sudo kpartx -av "${OUTPUT_IMG}" >/dev/null 2>&1
+
+	# mkfs
+	sudo mkfs.ext4 -F -L "${VERSION_BASE}" /dev/mapper/loop0p1 >/dev/null 2>&1
+
+	# mount filesystem
+	if [ ! -d "${MOUNT_DIR1}" ] ; then
+		sudo mkdir -p "${MOUNT_DIR1}"
+	fi
+	sudo mount /dev/mapper/loop0p1 "${MOUNT_DIR1}"
+}
+
+mount_src_image () {
+	# loop mount image file
+	sudo kpartx -av "${WIC_IMAGE}" >/dev/null 2>&1
+
+	# mount filesystem
+	if [ ! -d "${MOUNT_DIR2}" ]; then
+		sudo mkdir -p "${MOUNT_DIR2}"
+	fi
+	sudo mount /dev/mapper/loop1p1 "${MOUNT_DIR2}"
+}
+
+copy_files () {
+	# rsync over files from source wic image
+	sudo rsync -av --quiet "${MOUNT_DIR2}/" "${MOUNT_DIR1}"
+
+	# create flash dir
+	if [ ! -d "${FLASH_DIR}" ]; then
+		sudo mkdir -p "${FLASH_DIR}"
+	fi
+
+	# copy over u-boot files
+	sudo cp "${UBOOT_IMAGE}" "${MOUNT_DIR1}/flash"
+
+	# copy over image files
+	for device in ${HARDWARE}; do
+		file="${VERSION}/${device}-core-image-minimal-${VERSION_BASE}.tar.gz"
+		sudo cp "${file}" "${FLASH_DIR}"
+	done
+
+	# copy over scripts
+	sudo cp "${FILE_FLASH_INIT}" "${MOUNT_DIR1}/etc/init.d/flash"
+	sudo cp "${FILE_WRITE_U_BOOT}" "${MOUNT_DIR1}/flash"
+	sudo cp "${FILE_WRITE_FIRMWARE}" "${MOUNT_DIR1}/flash"
+
+	# create symlink for startup
+	sudo ln -sf "../init.d/flash" "${MOUNT_DIR1}/etc/rc5.d/S99flash"
+}
+
+update_extlinux_conf () {
+	tmpfile="$(mktemp /tmp/extlinux.conf.XXXXXX)"
+	# determine partuuid
+	for a in /dev/disk/by-partuuid/* ; do
+		if file "${a}" | grep -q "dm-0"; then
+			partuuid="$(basename "${a}")"
+		fi
+	done
+	sed "s/\${uuid}/${partuuid}/" < "${EXTLINUX_CONF_FILE}" > "${tmpfile}"
+	sudo cp "${tmpfile}" "${EXTLINUX_CONF_FILE}"
+	rm "${tmpfile}"
+}
+
+umount_cleanup () {
+	# sync filesystem
+	sudo sync
+
+	# umount
+	sudo umount "${MOUNT_DIR1}" "${MOUNT_DIR2}"
+
+	# remove loop mounts
+	sudo kpartx -dv "${OUTPUT_IMG}" >/dev/null 2>&1
+	sudo kpartx -dv "${WIC_IMAGE}" >/dev/null 2>&1
+}
+
+# main
+
+if [ "${#}" -ne "1" ]; then
+	usage
+else
+	START="$(${DATE} +%s)"
+	VERSION="${1}"
+	VERSION_BASE="$(basename "${1}")"
+	OUTPUT_IMG="${VERSION}.img"
+	if [ -f "${OUTPUT_IMG}" ]; then
+		echo "Output image: ${OUTPUT_IMG} exists."
+		exit 1
+	fi
+	check_files
+	create_image_file
+	mount_src_image
+	copy_files
+	update_extlinux_conf
+	umount_cleanup
+	END="$(${DATE} +%s)"
+	duration="$(calc_duration "${START}" "${END}")"
+	echo "SUCCESS! (${duration})"
+fi
