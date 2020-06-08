@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = " \
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-inherit module-base
+inherit module
 
 SRC_URI = " \
     https://community.cypress.com/servlet/JiveServlet/download/19375-1-53475/cypress-fmac-${PV}.zip;name=cypress \
@@ -23,6 +23,13 @@ S_BACKPORTS = "${WORKDIR}/v5.4.18-backports"
 S_FIRMWARE = "${WORKDIR}/firmware"
 
 DEPENDS = "bison-native flex-native virtual/kernel"
+RDEPENDS_${PN} = "rfkill"
+
+MAKE_TARGETS = "modules"
+MODULES_INSTALL_TARGET = "modules_install"
+PACKAGES_DYNAMIC += "^${BPN}-kernel-module-.*"
+
+KERNEL_MODULE_PACKAGE_PREFIX = "${BPN}-"
 
 EXTRA_INCLUDE = " \
     -I${S}/drivers/net/wireless/broadcom/brcm80211/include \
@@ -58,11 +65,22 @@ do_configure_append () {
 }
 
 do_install_append () {
+    # install the kernel modules
+    oe_runmake modules_install INSTALL_MOD_PATH="${D}/lib"
+
     # install the nvram file
     install -d ${D}/lib/firmware/brcm
     install ${WORKDIR}/jody-w167.nvram ${D}/lib/firmware/brcm/brcmfmac4359-pcie.txt
+
+    # install the firmware
+    install ${S}/firmware/brcmfmac4359-pcie.bin ${D}/lib/firmware/brcm
+    install ${S}/firmware/brcmfmac4359-pcie.clm_blob ${D}/lib/firmware/brcm
 }
 
 FILES_${PN} += " \
     /lib/firmware/brcm/brcmfmac4359-pcie.txt \
+    /lib/firmware/brcm/brcmfmac4359-pcie.bin \
+    /lib/firmware/brcm/brcmfmac4359-pcie.clm_blob \
 "
+
+RPROVIDES_${PN} += "jody-w1-driver-kernel-module-rfkill"
