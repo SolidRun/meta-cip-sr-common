@@ -39,6 +39,8 @@ local_conf_header:
     IMAGE_INSTALL_append += "initscripts-readonly-rootfs-overlay"
 
     # Set users and passwords
+    # To create password for 'test'
+    #    printf "%q" "$(openssl passwd -6 test)"
     INHERIT += "extrausers"
     EXTRA_USERS_PARAMS = " \
         usermod --password \
