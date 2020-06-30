@@ -1,0 +1,27 @@
+From 00f567a29f3dd7c5f0b7d82b0663c3f5a638bec8 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Tue, 30 Jun 2020 17:44:17 -0400
+Subject: [PATCH] u-boot: remove --debug option from uboot_auto_configure
+ command
+
+---
+ meta-mender-core/recipes-bsp/u-boot/u-boot-mender-common.inc | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/meta-mender-core/recipes-bsp/u-boot/u-boot-mender-common.inc b/meta-mender-core/recipes-bsp/u-boot/u-boot-mender-common.inc
+index bc17e7c..a6b4953 100644
+--- a/meta-mender-core/recipes-bsp/u-boot/u-boot-mender-common.inc
++++ b/meta-mender-core/recipes-bsp/u-boot/u-boot-mender-common.inc
+@@ -343,8 +343,7 @@ do_mender_uboot_auto_configure() {
+         --src-dir=${S} \
+         --tmp-dir=${MENDER_UBOOT_TMP_SRC} \
+         --kconfig-fragment=${S}/mender_Kconfig_fragment \
+-        ${@bb.utils.contains('DISTRO_FEATURES', 'mender-ubi', '--ubi', '', d)} \
+-        --debug
++        ${@bb.utils.contains('DISTRO_FEATURES', 'mender-ubi', '--ubi', '', d)}
+ }
+ do_mender_uboot_auto_configure[depends] = "${PN}:do_prepare_recipe_sysroot"
+ # This is for the externalsrc class: Make sure we don't try to edit a user
+-- 
+2.20.1
+
