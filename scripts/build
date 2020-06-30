@@ -17,6 +17,8 @@ IMAGE_SUFFIX=" \
 	tar.gz \
 "
 CONFIG_FILE="meta-cip-sr-common/scripts/build.conf"
+KAS_DOCKER="meta-cip-sr-common/scripts/kas-docker"
+DOCKER_ENABLE=0
 
 # initialize configuration array
 declare -A config
@@ -50,6 +52,7 @@ usage () {
 	echo "    -p|--product <product>                        :default is <${config[product]}>"
 	echo "    -r|--release <release version>                :default is <${config[release]}>"
 	echo "    -d|--date <date>                              :default is <${config[date]}>"
+	echo "    -D|--docker                                   :default is to not use docker"
 	echo "    -i|--iteration <iteration>                    :default is <${config[iteration]}>"
 	echo "    -v|--variant <variant>                        :default is no specific variant"
 	echo "    -c|--config <config>                          :default is <${CONFIG_FILE}>"
@@ -145,15 +148,27 @@ do_build () {
 			printf "\\nError file <%s> not found!\\n" "${device_yml}"
 			exit 1
 		fi
-		# Build using KAS
-		printf "    MENDER_ARTIFACT_NAME=%s MENDER_SERVER_URL=%s kas build %s:%s\\n" \
-			"${VERSION}" "${config[mender_server_url]}" "${main_yml}" "${device_yml}"
-		printf "        ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
-			"${device}" \
-			"${log}"
-		MENDER_ARTIFACT_NAME="${VERSION}" MENDER_SERVER_URL="${config[mender_server_url]}" \
-			kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
-		ret="${?}"
+		if [ ${DOCKER_ENABLE} -eq 1 ]; then
+			# Build using KAS wrapper by kas-docker script
+			printf "    MENDER_ARTIFACT_NAME=%s MENDER_SERVER_URL=%s %s build %s:%s\\n" \
+				"${VERSION}" "${config[mender_server_url]}" "${KAS_DOCKER}" "${main_yml}" "${device_yml}"
+			printf "        ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
+				"${device}" \
+				"${log}"
+			MENDER_ARTIFACT_NAME="${VERSION}" MENDER_SERVER_URL="${config[mender_server_url]}" \
+				${KAS_DOCKER} build "${main_yml}":"${device_yml}" > "${log}" 2>&1
+			ret="${?}"
+		else
+			# Build using KAS
+			printf "    MENDER_ARTIFACT_NAME=%s MENDER_SERVER_URL=%s kas build %s:%s\\n" \
+				"${VERSION}" "${config[mender_server_url]}" "${main_yml}" "${device_yml}"
+			printf "        ${LIGHT_RED}%s${NC} logging to ${BOLD}%s${NC}" \
+				"${device}" \
+				"${log}"
+			MENDER_ARTIFACT_NAME="${VERSION}" MENDER_SERVER_URL="${config[mender_server_url]}" \
+				kas build "${main_yml}":"${device_yml}" > "${log}" 2>&1
+			ret="${?}"
+		fi
 		END="$(${DATE} +%s)"
 		duration="$(calc_duration "${START}" "${END}")"
 		if [ "${ret}" -eq "1" ] ; then
@@ -315,7 +330,7 @@ do_deploy_sign_artifact () {
 
 # main
 
-options=$(getopt -l "help,hardware:,product:,release:,date:,iteration:,variant:,config:" -o "hH:p:r:d:i:v:c:" -- "${@}")
+options=$(getopt -l "help,hardware:,product:,release:,date:,docker,iteration:,variant:,config:" -o "hH:p:r:d:Di:v:c:" -- "${@}")
 eval set -- "${options}"
 
 while true
@@ -343,6 +358,9 @@ do
 		-d|--date )
 			shift
 			RELEASE_DATE="${1}"
+			;;
+		-D|--docker )
+			DOCKER_ENABLE=1
 			;;
 		-i|--iteration )
 			shift
