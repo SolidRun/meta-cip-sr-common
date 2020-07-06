@@ -198,7 +198,7 @@ if [ "${#}" -ne "1" ]; then
 	usage
 else
 	START="$(${DATE} +%s)"
-	VERSION="${1}"
+	VERSION="$(echo "${1}" | sed s'/\/$//')"
 	VERSION_BASE="$(basename "${1}")"
 	OUTPUT_IMG="${VERSION}.img"
 	if [ -f "${OUTPUT_IMG}" ]; then
