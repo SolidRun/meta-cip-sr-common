@@ -63,7 +63,7 @@ local_conf_header:
     IMAGE_INSTALL_append += "openssh mmc-utils solidsense-scripts sudo"
     IMAGE_INSTALL_append += "docker python3-docker-compose u-boot-fw-utils util-linux"
     IMAGE_INSTALL_append += "init-ifupdown ifupdown dhcp-client"
-    IMAGE_INSTALL_append += "tzdata solidsense-provisioning solidsense-mqtt"
+    IMAGE_INSTALL_append += "tzdata solidsense-provisioning solidsense-mqtt solidsense-vehicle"
 
     # Factory
     IMAGE_INSTALL_append += "empty picocom"
