@@ -14,7 +14,7 @@ SRC_URI = " \
    file://restart.sh \
    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV_SolidSense-V1 = "a31f0edd32d684403e924480f851e5380b6a59e2"
+SRCREV_SolidSense-V1 = "786ff14501ca3c5b45655335913c8398350272ea"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"
@@ -41,10 +41,14 @@ do_install () {
     install -m 0755 ${WORKDIR}/bind9.init ${D}/etc/init.d/bind9
 
     ln -s /etc/solidsense ${D}/etc/solidsense_device
+
+    install -d ${D}/etc/udev/rules.d
+    install -m 0644 ${S-V1}/wifi/udev/99-power-save.rules ${D}/etc/udev/rules.d
 }
 
 FILES_${PN} = " \
     /etc/init.d/bind9 \
+    /etc/udev/rules.d/99-power-save.rules \
     /etc/solidsense_device \
     /opt/scripts/check_solidsense \
     /opt/scripts/flash_ublox \
