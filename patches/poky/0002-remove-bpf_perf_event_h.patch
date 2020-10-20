@@ -1,5 +1,5 @@
 From baac753caf0851f5d14c3f82ac7dc0ff2ab0740e Mon Sep 17 00:00:00 2001
-From: Eric Bree <eric@merkbree.com>
+From: Eric Bree <eric.bree@solid-run.com>
 Date: Thu, 30 Jan 2020 14:35:14 -0500
 Subject: [PATCH] remove asm/bpf_perf_event.h
 

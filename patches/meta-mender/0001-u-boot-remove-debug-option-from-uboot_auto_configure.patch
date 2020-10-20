@@ -1,5 +1,5 @@
 From 00f567a29f3dd7c5f0b7d82b0663c3f5a638bec8 Mon Sep 17 00:00:00 2001
-From: Eric Bree <eric@merkbree.com>
+From: Eric Bree <eric.bree@solid-run.com>
 Date: Tue, 30 Jun 2020 17:44:17 -0400
 Subject: [PATCH] u-boot: remove --debug option from uboot_auto_configure
  command
