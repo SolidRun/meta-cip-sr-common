@@ -6,4 +6,5 @@ tmpfs			/run		tmpfs		mode=0755,nodev,nosuid,strictatime		0 0
 tmpfs			/var/volatile	tmpfs		defaults					0 0
 tmpfs			/dev/shm	tmpfs		defaults					0 0
 
+/dev/mmcblk2p3		/media/rfs/rw	ext4		defaults					0 1
 /data/.var/log		/var/log	ext4		defaults,bind,x-systemd.after=data.mount	0 0
