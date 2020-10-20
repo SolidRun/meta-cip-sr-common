@@ -72,6 +72,7 @@ local_conf_header:
     IMAGE_INSTALL_append += "ppp wpa-supplicant wireless-regdb iw hostapd bluez5 bluez5-noinst-tools"
     IMAGE_INSTALL_append += "nfs-utils modem-gps wirepas-gateway wirepas-gateway-dev dhcp-server bind"
     IMAGE_INSTALL_append += "kura wireless-tools ble-gateway cronie openvpn openssl-bin"
+    IMAGE_INSTALL_append += "e2fsprogs-e2fsck e2fsprogs-mke2fs e2fsprogs-tune2fs e2fsprogs-badblocks e2fsprogs-resize2fs"
     #     Debug
     # IMAGE_INSTALL_append += "gdb strace tcpdump"
     #     Java
