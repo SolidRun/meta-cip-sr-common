@@ -63,4 +63,4 @@ FILES_${PN} = " \
   /opt/SolidSense/common/solidsense_parameters.py \
 "
 
-COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl"
+COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl|in6gq|in6gsdl"

@@ -12,9 +12,9 @@ SRC_URI = " \
    file://check_solidsense.sh \
    file://gpl-2.0.txt \
    file://restart.sh \
-   git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+   git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV_SolidSense-V1 = "786ff14501ca3c5b45655335913c8398350272ea"
+SRCREV_SolidSense-V1 = "8ca2229f2edfae415b3911aef480bfd095e55d88"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"
@@ -56,4 +56,4 @@ FILES_${PN} = " \
     /opt/SolidSense/bin/restart \
 "
 
-COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl"
+COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl|in6gq|in6gsdl"

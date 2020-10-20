@@ -26,4 +26,4 @@ PACKAGES = "${PN}-brcm ${PN}-wilink8"
 FILES_${PN}-brcm = "${base_libdir}/firmware/brcm/*"
 FILES_${PN}-wilink8 = "${base_libdir}/firmware/ti-connectivity/*"
 
-COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl"
+COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl|in6gq|in6gsdl"
