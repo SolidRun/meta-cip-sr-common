@@ -1,0 +1,25 @@
+From 0f0446411048d567a93e01e8bd8a54bc7c407cd7 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Mon, 19 Oct 2020 10:15:30 -0400
+Subject: [PATCH] add fsck check to data partition
+
+---
+ meta-mender-core/classes/mender-setup-image.inc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta-mender-core/classes/mender-setup-image.inc b/meta-mender-core/classes/mender-setup-image.inc
+index ebfc2a5b..c1ab2f3f 100644
+--- a/meta-mender-core/classes/mender-setup-image.inc
++++ b/meta-mender-core/classes/mender-setup-image.inc
+@@ -43,7 +43,7 @@ mender_update_fstab_file() {
+     fi
+ 
+     mkdir -p ${IMAGE_ROOTFS}/data
+-    printf "%-20s %-20s %-10s %-21s %-2s %s\n" ${tmpDataPart} /data ${MENDER_DATA_PART_FSTYPE} ${MENDER_DATA_PART_FSTAB_OPTS} 0 0 >> ${IMAGE_ROOTFS}${sysconfdir}/fstab
++    printf "%-20s %-20s %-10s %-21s %-2s %s\n" ${tmpDataPart} /data ${MENDER_DATA_PART_FSTYPE} ${MENDER_DATA_PART_FSTAB_OPTS} 0 2 >> ${IMAGE_ROOTFS}${sysconfdir}/fstab
+ }
+ 
+ def mender_default_state_scripts_version(d):
+-- 
+2.20.1
+
