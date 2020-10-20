@@ -14,7 +14,7 @@ SRC_URI = " \
    file://restart.sh \
    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV_SolidSense-V1 = "8ca2229f2edfae415b3911aef480bfd095e55d88"
+SRCREV_SolidSense-V1 = "5e7aaebc7c2967e426160a4ac75b93272b5ca667"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"

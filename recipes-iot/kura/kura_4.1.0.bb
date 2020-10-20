@@ -7,11 +7,11 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1;destsuffix=SolidSense;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense;name=SolidSense-V1 \
     git://github.com/eclipse/kura;branch=develop;rev=KURA_${PV}_RELEASE;destsuffix=kura;name=kura \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "786ff14501ca3c5b45655335913c8398350272ea"
+SRCREV_SolidSense-V1 = "5e7aaebc7c2967e426160a4ac75b93272b5ca667"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura"
 KURA_PATH = "/opt/eclipse/kura_${PV}_solid_sense/"
