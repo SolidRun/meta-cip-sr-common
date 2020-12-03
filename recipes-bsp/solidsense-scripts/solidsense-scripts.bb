@@ -11,7 +11,7 @@ SRC_URI = " \
    file://gpl-2.0.txt \
    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV_SolidSense-V1 = "3ddfcd9849288293d24178782c5ae874adf023c7"
+SRCREV_SolidSense-V1 = "5a2eb5c2bb6b99f59549a03176806c9fa96bd041"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"
