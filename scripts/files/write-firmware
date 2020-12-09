@@ -4,6 +4,7 @@
 LOGFILE=/tmp/log$$
 ROOT_DEV="/dev/mmcblk2"
 firmware=""
+is_boot=0
 
 # functions
 partition_disk () {
@@ -140,6 +141,12 @@ write_rootfs () {
 find_firmware_file () {
 	type="$(tr -d '\000' < /proc/device-tree/model)"
 	case "${type}" in
+		"SolidRun SolidSense IN6 Dual/Quad (1.5som+emmc)" )
+			hardware="in6gq"
+			;;
+		"SolidRun SolidSense IN6 Solo/DualLite (1.5som+emmc)" )
+			hardware="in6gsdl"
+			;;
 		"SolidRun HummingBoard2 Solo/DualLite (1.5som+emmc)" )
 			hardware="n6gsdl"
 			;;
@@ -180,6 +187,7 @@ do
 			;;
 		-b|--boot )
 			firmware="$(find_firmware_file)"
+			is_boot=1
 			shift
 			break
 			;;
@@ -200,14 +208,21 @@ do
 	shift
 done
 
-if [ ${#} -ne 1 ] || [ -z "${firmware}" ]; then
+if [ ${is_boot} -eq 1 ] && [ -n "${firmware}" ] ; then
+	if [ ! -f "${firmware}" ] ; then
+		echo "File <${firmware}> does not exist!"
+		exit 1
+	fi
+elif [ ${is_boot} -eq 0 ] && [ ${#} -eq 1 ] ; then
+	firmware="${1}"
+	if [ ! -f "${firmware}" ] ; then
+		echo "File <${firmware}> does not exist!"
+		exit 1
+	fi
+else
 	usage
 	echo "usage: $(basename "${0}") 'OS tar.gz file'"
 	exit 1
-else
-	if [ -z "${firmware}" ]; then
-		firmware="${1}"
-	fi
 fi
 
 echo "Flashing with ${firmware}."

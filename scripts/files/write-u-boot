@@ -36,7 +36,13 @@ check_part_conf () {
 		echo "Found good PARTITION_CONFIG of ${partconf_value}"
 	else
 		echo "Setting up PARTITION_CONFIG"
+		sleep 1
 		${MMC} bootpart enable 1 1 ${BLOCK_DEV}
+		partconf_value="$(${MMC} extcsd read ${BLOCK_DEV} | awk '/PARTITION_CONFIG/ {a = sub(/\]/,"",$5); print $5}')"
+		if [ "${partconf_value}" != "0x48" ]; then
+			echo "Setting up PARTITION_CONFIG failed!"
+			exit 1
+		fi
 	fi
 }
 
@@ -62,5 +68,5 @@ write_u_boot () {
 
 # main
 check_files
-check_part_conf
 write_u_boot
+check_part_conf
