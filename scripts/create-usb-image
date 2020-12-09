@@ -17,10 +17,15 @@ UBOOT_IMAGE="u-boot-with-spl.imx"
 UBOOT_IMAGE_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${UBOOT_IMAGE}"
 WIC_IMAGE="core-image-full-cmdline-solidrun-imx6-20200119211133.rootfs.wic"
 WIC_IMAGE_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${WIC_IMAGE}"
+UBOOT_IMX6_SPL="spl-imx6-sdhc.bin"
+UBOOT_IMX6_SPL_URL="https://images.solid-build.xyz/IMX6/U-Boot/${UBOOT_IMX6_SPL}"
+UBOOT_IMX6_IMG="u-boot-imx6-sdhc.img"
+UBOOT_IMX6_IMG_URL="https://images.solid-build.xyz/IMX6/U-Boot/${UBOOT_IMX6_IMG}"
 HARDWARE=" \
 	n6gq \
 	n6gsdl \
 "
+TYPE="n6g"
 MOUNT_DIR1="/mnt/rootfs1"
 MOUNT_DIR2="/mnt/rootfs2"
 FLASH_DIR="${MOUNT_DIR1}/flash"
@@ -33,7 +38,8 @@ RED="\\e[31m"
 # functions
 usage () {
 	printf "%s <VERSION>\\n" "${PROG_NAME}"
-	printf "\\n"
+	printf "    -h|--hardware                        : hardware (in6g|n6gg)"
+	printf "\\n\\n"
 	printf "\\texample: %s Solidsense-V0.01-2019060600\\n" "${PROG_NAME}"
 	exit 1
 }
@@ -71,12 +77,24 @@ check_file () {
 }
 
 check_files () {
+	UBOOT_IMAGE="${UBOOT_IMAGE}.${TYPE}"
+	UBOOT_IMAGE_URL="${UBOOT_IMAGE_URL}.${TYPE}"
 	failed=0
 	failed=$(check_file "${UBOOT_IMAGE}")
+	failed=$(check_file "${UBOOT_IMX6_SPL}")
+	failed=$(check_file "${UBOOT_IMX6_IMG}")
 	failed=$(check_file "${WIC_IMAGE}")
 	if [ ! -f "${UBOOT_IMAGE}" ]; then
 		echo "Downloading ${UBOOT_IMAGE} from ${UBOOT_IMAGE_URL}"
 		wget "${UBOOT_IMAGE_URL}" > /dev/null 2>&1
+	fi
+	if [ ! -f "${UBOOT_IMX6_SPL}" ]; then
+		echo "Downloading ${UBOOT_IMX6_SPL} from ${UBOOT_IMX6_SPL_URL}"
+		wget "${UBOOT_IMX6_SPL_URL}" > /dev/null 2>&1
+	fi
+	if [ ! -f "${UBOOT_IMX6_IMG}" ]; then
+		echo "Downloading ${UBOOT_IMX6_IMG} from ${UBOOT_IMX6_IMG_URL}"
+		wget "${UBOOT_IMX6_IMG_URL}" > /dev/null 2>&1
 	fi
 	if [ ! -f "${WIC_IMAGE}" ]; then
 		echo "Downloading ${WIC_IMAGE} from ${WIC_IMAGE_URL}"
@@ -122,6 +140,10 @@ END
 	# mkfs
 	sudo mkfs.ext4 -F -L "${VERSION_BASE}" /dev/mapper/loop0p1 >/dev/null 2>&1
 
+	# write u-boot
+	dd if="${UBOOT_IMX6_SPL}" of="${OUTPUT_IMG}" bs=1k seek=1 conv=sync,notrunc,nocreat
+	dd if="${UBOOT_IMX6_IMG}" of="${OUTPUT_IMG}" bs=1k seek=69 conv=sync,notrunc,nocreat
+
 	# mount filesystem
 	if [ ! -d "${MOUNT_DIR1}" ] ; then
 		sudo mkdir -p "${MOUNT_DIR1}"
@@ -150,7 +172,7 @@ copy_files () {
 	fi
 
 	# copy over u-boot files
-	sudo cp "${UBOOT_IMAGE}" "${MOUNT_DIR1}/flash"
+	sudo cp "${UBOOT_IMAGE}" "${MOUNT_DIR1}/flash/u-boot-with-spl.imx"
 
 	# copy over image files
 	for device in ${HARDWARE}; do
@@ -193,6 +215,44 @@ umount_cleanup () {
 }
 
 # main
+options=$(getopt -l "help,hardware:" -o ":hH:" -- "${@}")
+eval set -- "${options}"
+
+while true
+do
+        case ${1} in
+                -h|--help )
+                        usage
+                        ;;
+                -H|--hardware )
+			shift
+			type="${1}"
+			if [ "${type}" = "in6g" ] ; then
+				HARDWARE="in6gq in6sdl"
+			elif [ "${type}" = "n6g" ] ; then
+				HARDWARE="n6gq n6sdl"
+			else
+				echo "Unknown hardware type"
+				exit 1
+			fi
+                        ;;
+                \? )
+                        usage
+                        ;;
+                : )
+                        echo "Invalid option: ${OPTARG} requires an argument" 1>&2
+                        ;;
+                -- )
+                        shift
+                        break
+                        ;;
+                * )
+                        usage
+                        ;;
+        esac
+        shift
+done
+
 
 if [ "${#}" -ne "1" ]; then
 	usage
