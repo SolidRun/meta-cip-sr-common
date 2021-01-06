@@ -24,7 +24,6 @@ local_conf_header:
         ABORT,${DL_DIR},100M,1K \
         ABORT,${SSTATE_DIR},100M,1K"
     CONF_VERSION = "1"
-    DL_DIR ?= "/home/eric/work.kingcheese/downloads"
 
     # Remove warnings
     WARN_QA_remove = "host-user-contaminated"
