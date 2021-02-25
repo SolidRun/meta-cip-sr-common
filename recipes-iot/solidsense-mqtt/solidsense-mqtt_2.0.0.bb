@@ -6,14 +6,15 @@ LIC_FILES_CHKSUM = " \
 "
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=master \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=Laurent-dev \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV = "aceb0ffb9e6f832a10bbb07af17640118465e4ca"
-SRCREV_SolidSense-V1 = "5a2eb5c2bb6b99f59549a03176806c9fa96bd041"
+SRCREV = "fc1307a0cf5bd1d9d537bbeb4a9113096edff6ac"
+SRCREV_SolidSense-V1 = "d90499f9f4bb798eb2dfbb43a762613dc6ce40da"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
-KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
+KURA_VERSION ?= "5.0.0-SNAPSHOT"
+KURA_PATH = "/opt/eclipse/kura_${KURA_VERSION}_solid_sense"
 
 SYSTEMD_SERVICE_${PN} = "solidsense_mqtt.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "disable"
@@ -36,12 +37,17 @@ do_install () {
 
     # Install the SolidSense MQTT configuration service
     install -d ${D}/${KURA_PATH}/data/packages
-    cp -a ${S-V1}/Kura/plugins/SolidsenseMqttService.dp \
-        ${D}${KURA_PATH}/data/packages
+    install -m 0644 ${S-V1}/Kura/plugins/SolidsenseMqttService.dp \
+        ${D}${KURA_PATH}/data/packages/SolidsenseMqttService_1.0.0.dp
 }
 
 FILES_${PN} = " \
   /opt \
+  /opt/eclipse \
+  /opt/eclipse/kura_5.0.0_solid_sense \
+  /opt/eclipse/kura_5.0.0_solid_sense/data \
+  /opt/eclipse/kura_5.0.0_solid_sense/data/packages \
+  /opt/eclipse/kura_5.0.0_solid_sense/data/packages/SolidsenseMqttService_1.0.0.dp \
   /opt/SolidSense \
   /opt/SolidSense/mqtt \
   /opt/SolidSense/mqtt/solidsense_mqtt_service.py \
