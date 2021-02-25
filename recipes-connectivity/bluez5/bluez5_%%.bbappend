@@ -4,6 +4,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += " \
     file://main.conf \
+    file://0001-use-the-deprecated-name-for-SIOCGSTAMP.patch \
 "
 
 do_install_append () {
