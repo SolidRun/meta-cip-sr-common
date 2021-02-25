@@ -7,9 +7,9 @@ LIC_FILES_CHKSUM = " \
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-Modem_GPS_Service.git;protocol=ssh;branch=V2.1 \
+    git://git@github.com/SolidRun/SolidSense-Modem_GPS_Service.git;protocol=ssh;branch=V2.1-Kura5 \
 "
-SRCREV = "457eb890d6513290cb79a6a06b671a493b858f42"
+SRCREV = "8f031ca6b7c9952cfe2b68fadcbe361993b4d0d0"
 S = "${WORKDIR}/git"
 
 SYSTEMD_SERVICE_${PN} = "modem_gps.service"
