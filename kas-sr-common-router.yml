@@ -24,6 +24,8 @@ local_conf_header:
         ABORT,${DL_DIR},100M,1K \
         ABORT,${SSTATE_DIR},100M,1K"
     CONF_VERSION = "1"
+    # Change as needed
+    #DL_DIR ?= "~/downloads"
 
     # Remove warnings
     WARN_QA_remove = "host-user-contaminated"
@@ -56,7 +58,7 @@ local_conf_header:
     # Install zimage, dtb and kernel modules
     #
     IMAGE_INSTALL_append += "kernel-devicetree kernel-image-zimage kernel-modules jody-w1-driver"
-    IMAGE_INSTALL_append += "firmware-wireless-wilink8 kernel-firmware-sdma-imx6q"
+    IMAGE_INSTALL_append += "firmware-wireless-wilink8 firmware-imx-sdma-imx6q"
 
     # Add additional packages
     IMAGE_INSTALL_append += "openssh mmc-utils solidsense-scripts sudo"

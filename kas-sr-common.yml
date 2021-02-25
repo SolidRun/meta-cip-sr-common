@@ -24,6 +24,8 @@ local_conf_header:
         ABORT,${DL_DIR},100M,1K \
         ABORT,${SSTATE_DIR},100M,1K"
     CONF_VERSION = "1"
+    # Change as needed
+    #DL_DIR ?= "~/downloads"
 
     # Remove warnings
     WARN_QA_remove = "host-user-contaminated"
@@ -56,7 +58,7 @@ local_conf_header:
     # Install zimage, dtb and kernel modules
     #
     IMAGE_INSTALL_append += "kernel-devicetree kernel-image-zimage kernel-modules"
-    IMAGE_INSTALL_append += "firmware-wireless-wilink8 kernel-firmware-sdma-imx6q"
+    IMAGE_INSTALL_append += "firmware-wireless-wilink8 firmware-imx-sdma-imx6q"
 
     # Add additional packages
     IMAGE_INSTALL_append += "openssh mmc-utils solidsense-scripts sudo"
@@ -77,6 +79,7 @@ local_conf_header:
     #     Java
     PREFERRED_PROVIDER_virtual/java-native = "cacao-native"
     PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
+    PREFERRED_RPROVIDER_java2-runtime = "openjdk-8"
 
     # Mender
     INHERIT += "mender-full"
@@ -87,7 +90,8 @@ local_conf_header:
     MENDER_ARTIFACT_EXTRA_ARGS += "--no-checksum-provide"
 
     # Preferred applications
-    PREFERRED_VERSION_kura = "4.0.0"
+    PREFERRED_VERSION_kura = "5.0.0"
+    KURA_VERSION = "5.0.0"
     PREFERRED_VERSION_wirepas-gateway = "1.3.0"
     PREFERRED_VERSION_wirepas-messaging = "1.2.0"
     PREFERRED_VERSION_python3-grpcio = "1.22.0"
