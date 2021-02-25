@@ -1,0 +1,25 @@
+From 1e1b40e7ebb1024980b9d47057d722c710d27b08 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Mon, 2 Nov 2020 13:32:29 -0500
+Subject: [PATCH] user olddefconfig instead of oldnoconfig
+
+---
+ recipes-kernel/linux/linux-base_git.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-kernel/linux/linux-base_git.bb b/recipes-kernel/linux/linux-base_git.bb
+index ca0814ac..c8425228 100644
+--- a/recipes-kernel/linux/linux-base_git.bb
++++ b/recipes-kernel/linux/linux-base_git.bb
+@@ -107,7 +107,7 @@ Please provide at least one of the following settings:
+ # Need to add the source & build directories into the command
+ # because kernel.bbclass assumes that ${S} is the same as ${B}.
+ # ARCH and CROSS_COMPILE are already exported, so no need to define them.
+-KERNEL_CONFIG_COMMAND = "oe_runmake_call O=${B} -C ${S} oldnoconfig"
++KERNEL_CONFIG_COMMAND = "oe_runmake_call O=${B} -C ${S} olddefconfig"
+ 
+ # Always use a static integer as KERNEL_PRIORITY, which is automatically
+ # calcurated from PV by default (see kernel.bbclass).
+-- 
+2.20.1
+
