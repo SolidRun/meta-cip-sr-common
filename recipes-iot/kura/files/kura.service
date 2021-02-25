@@ -3,7 +3,7 @@ Description=Start Kura
 
 [Service]
 Type=forking
-ExecStart=/opt/eclipse/kura_4.0.0_solid_sense/bin/start_kura_background.sh
+ExecStart=/opt/eclipse/kura/bin/start_kura_background.sh
 PIDFile=/run/kura.pid
 
 [Install]
