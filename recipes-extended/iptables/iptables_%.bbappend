@@ -1,14 +1,14 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
     file://iptables-flush \
     file://iptables.service \
     file://ipv4-forward.conf \
     file://ip6tables.service \
     file://ipv6-forward.conf \
 "
-SRCREV_SolidSense-V1 = "5a2eb5c2bb6b99f59549a03176806c9fa96bd041"
+SRCREV_SolidSense-V1 = "d90499f9f4bb798eb2dfbb43a762613dc6ce40da"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} += "iptables.service ip6tables.service"
