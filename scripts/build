@@ -19,6 +19,7 @@ IMAGE_SUFFIX=" \
 CONFIG_FILE="meta-cip-sr-common/scripts/build.conf"
 KAS_DOCKER="meta-cip-sr-common/scripts/kas-docker"
 DOCKER_ENABLE=0
+ARTIFACT_VERIFY_KEY="meta-cip-sr-common/mender-cert/artifact-verify-key.pem"
 
 # initialize configuration array
 declare -A config
@@ -305,9 +306,29 @@ do_deploy_images () {
 }
 
 do_deploy_sign_artifact () {
+	local do_return=0
+
+	if [ ! -f "${config[mender_private_key_file]}" ]; then
+		printf "\\nUnable to find mender private key file: ${RED}%s${NC}\\n" "${config[mender_private_key_file]}"
+		do_return=1
+	fi
+	if [ ! -f "${config[mender_public_key_file]}" ]; then
+		printf "\\nUnable to find mender public key file: ${RED}%s${NC}\\n" "${config[mender_public_key_file]}"
+		do_return=1
+	fi
+	if [ ! -f "${config[mender_artifact]}" ]; then
+		printf "\\nUnable to find mender artifact: ${RED}%s${NC}\\n" "${config[mender_artifact]}"
+		do_return=1
+	fi
+	if [ ${do_return} -eq 1 ]; then
+		printf "\\nUnable to sign artifacts!\\n"
+		return
+	fi
+
 	if [ ! -d "deploy/${VERSION}" ]; then
 		mkdir -p "deploy/${VERSION}"
 	fi
+
 	printf "Signing and verifying artifact for${LIGHT_RED}%s${NC}\\n"
 	for device in ${config[devices]}; do
 		dir_deploy="deploy/${VERSION}"
@@ -401,11 +422,15 @@ if [ "${#}" -ne "0" ]; then
 	usage
 else
 	if [ ! -d "meta-cip-sr-common" ]; then
-		echo "Cannot find meta-cip-sr-common"
+		printf "\\nCannot find meta-cip-sr-common\\n\\n"
+		exit 1
+	fi
+	if [ ! -f "${ARTIFACT_VERIFY_KEY}" ]; then
+		printf "\\nUnable to continue cannot find ${RED}%s${NC}\\n\\n" "${ARTIFACT_VERIFY_KEY}"
 		exit 1
 	fi
 	FULL_START="$(${DATE} +%s)"
-	if [ -n "${VARIANT_VER}" ] ; then
+	if [ -n "${VARIANT_VER}" ]; then
 		VERSION="${config[product]}-${VARIANT_VER}${config[release]}-${config[date]}${config[iteration]}"
 	else
 		VERSION="${config[product]}-${config[release]}-${config[date]}${config[iteration]}"
