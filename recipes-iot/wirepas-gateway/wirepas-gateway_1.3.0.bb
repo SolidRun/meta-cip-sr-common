@@ -9,15 +9,16 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://github.com/SolidRun/gateway;branch=solidsense-1.3;name=gateway \
     git://github.com/wirepas/c-mesh-api;destsuffix=git/sink_service/c-mesh-api;name=c-mesh-api \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.1.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
 SRCREV_gateway = "466a78d40ec85af7391a81d19c996c2c8dca6c46"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "5a2eb5c2bb6b99f59549a03176806c9fa96bd041"
+SRCREV_SolidSense-V1 = "d90499f9f4bb798eb2dfbb43a762613dc6ce40da"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
-KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
+KURA_VERSION ?= "5.0.0-SNAPSHOT"
+KURA_PATH = "/opt/eclipse/kura_${KURA_VERSION}_solid_sense/"
 
 DEPENDS = " \
     python3-native \
@@ -139,7 +140,7 @@ do_install () {
 
     # Install the wirepas Kura dp
     install -d ${D}/${KURA_PATH}/data/packages
-    cp -a ${S-V1}/Kura/plugins/WirepasConfigurationService.dp \
+    install -m 0644 ${S-V1}/Kura/plugins/WirepasConfigurationService.dp \
         ${D}${KURA_PATH}/data/packages
 }
 
