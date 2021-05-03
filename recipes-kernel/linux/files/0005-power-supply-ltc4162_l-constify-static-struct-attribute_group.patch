@@ -1,0 +1,25 @@
+From 249aacc6a30f8e957394a2781a8a40150ecbc04f Mon Sep 17 00:00:00 2001
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Date: Wed, 13 Jan 2021 21:32:42 +0100
+Subject: power: supply: ltc4162-l: Constify static struct attribute_group
+
+The only usage of it is to put its address in an array of pointers to
+const static structs. Make it const to allow the compiler to put it in
+read-only memory.
+
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+
+diff --git a/drivers/power/supply/ltc4162-l-charger.c b/drivers/power/supply/ltc4162-l-charger.c
+index cded6484febb..1a5cb4405ee3 100644
+--- a/drivers/power/supply/ltc4162-l-charger.c
++++ b/drivers/power/supply/ltc4162-l-charger.c
+@@ -666,7 +666,7 @@ static struct attribute *ltc4162l_sysfs_entries[] = {
+ 	NULL,
+ };
+ 
+-static struct attribute_group ltc4162l_attr_group = {
++static const struct attribute_group ltc4162l_attr_group = {
+ 	.name	= NULL,	/* put in device directory */
+ 	.attrs	= ltc4162l_sysfs_entries,
+ };

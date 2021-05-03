@@ -1,0 +1,44 @@
+From 2e9cf306ad27ecbb8264aef1cd868aed7068636c Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Tue, 10 Nov 2020 12:08:59 -0500
+Subject: [PATCH] add am1805 rtc driver
+
+---
+ drivers/rtc/Kconfig  | 9 +++++++++
+ drivers/rtc/Makefile | 1 +
+ 2 files changed, 10 insertions(+)
+
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 45feeed5e21a..c9c14e3c1bca 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -228,6 +228,15 @@ config RTC_DRV_BRCMSTB
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called rtc-brcmstb-waketimer.
+ 
++config RTC_DRV_AM1805
++       tristate "Ambiq micro AM1805 RTC driver"
++       help
++         If you say yes here you get support for Ambiq micro AM1805 RTC
++         chip.
++
++         This driver can also be built as a module. If so, the module
++         will be called rtc-am1805.
++
+ config RTC_DRV_AS3722
+ 	tristate "ams AS3722 RTC driver"
+ 	depends on MFD_AS3722
+diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
+index fab66205bce0..e1fda5f74860 100644
+--- a/drivers/rtc/Makefile
++++ b/drivers/rtc/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_RTC_DRV_ABB5ZES3)	+= rtc-ab-b5ze-s3.o
+ obj-$(CONFIG_RTC_DRV_ABEOZ9)	+= rtc-ab-eoz9.o
+ obj-$(CONFIG_RTC_DRV_ABX80X)	+= rtc-abx80x.o
+ obj-$(CONFIG_RTC_DRV_AC100)	+= rtc-ac100.o
++obj-$(CONFIG_RTC_DRV_AM1805)    += rtc-am1805.o
+ obj-$(CONFIG_RTC_DRV_ARMADA38X)	+= rtc-armada38x.o
+ obj-$(CONFIG_RTC_DRV_AS3722)	+= rtc-as3722.o
+ obj-$(CONFIG_RTC_DRV_ASM9260)	+= rtc-asm9260.o
+-- 
+2.20.1

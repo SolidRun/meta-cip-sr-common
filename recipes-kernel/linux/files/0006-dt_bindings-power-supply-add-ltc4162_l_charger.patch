@@ -1,0 +1,90 @@
+From 26fe7d1da95be29a9a6d5cc73ffead9c6b8fd965 Mon Sep 17 00:00:00 2001
+From: Mike Looijmans <mike.looijmans@topic.nl>
+Date: Tue, 3 Nov 2020 09:37:06 +0100
+Subject: dt-bindings: power/supply: Add ltc4162-l-charger
+
+Add support for the LTC4162-L Li-Ion battery charger. The driver allows
+reading back telemetry and to set some charging options like the input
+current limit.
+
+This adds the devicetree bindings.
+
+Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+
+diff --git a/Documentation/devicetree/bindings/power/supply/ltc4162-l.yaml b/Documentation/devicetree/bindings/power/supply/ltc4162-l.yaml
+new file mode 100644
+index 000000000000..1f88c9e013f4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/power/supply/ltc4162-l.yaml
+@@ -0,0 +1,69 @@
++# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
++# Copyright (C) 2020 Topic Embedded Products
++%YAML 1.2
++---
++$id: "http://devicetree.org/schemas/power/supply/ltc4162-l.yaml#"
++$schema: "http://devicetree.org/meta-schemas/core.yaml#"
++
++title: Linear Technology (Analog Devices) LTC4162-L Charger
++
++maintainers:
++  - Mike Looijmans <mike.looijmans@topic.nl>
++
++description: |
++  The LTC ® 4162-L is an advanced monolithic synchronous step-down switching
++  battery charger and PowerPath (TM) manager that seamlessly manages power
++  distribution between input sources such as wall adapters, backplanes, solar
++  panels, etc., and a rechargeable Lithium-Ion/Polymer battery.
++
++  Specifications about the charger can be found at:
++    https://www.analog.com/en/products/ltc4162-s.html
++
++properties:
++  compatible:
++    enum:
++      - lltc,ltc4162-l
++
++  reg:
++    maxItems: 1
++    description: I2C address of the charger.
++
++  lltc,rsnsb-micro-ohms:
++    $ref: /schemas/types.yaml#/definitions/uint32
++    description: Battery sense resistor in microohm.
++    minimum: 1000
++
++  lltc,rsnsi-micro-ohms:
++    $ref: /schemas/types.yaml#/definitions/uint32
++    description: Input current sense resistor in microohm.
++    minimum: 1000
++
++  lltc,cell-count:
++    $ref: /schemas/types.yaml#/definitions/uint32
++    description: |
++      Number of battery cells. If not provided, will be obtained from the chip
++      once the external power is applied. Omit this when the number of cells
++      is somewhat dynamic. Without it, several measurements will return 0 until
++      the charger is connected to an external supply.
++
++required:
++  - compatible
++  - reg
++  - lltc,rsnsb-micro-ohms
++  - lltc,rsnsi-micro-ohms
++
++additionalProperties: false
++
++examples:
++  - |
++    i2c0 {
++      #address-cells = <1>;
++      #size-cells = <0>;
++      charger: battery-charger@68 {
++              compatible = "lltc,ltc4162-l";
++              reg = <0x68>;
++              lltc,rsnsb-micro-ohms = <10000>;
++              lltc,rsnsi-micro-ohms = <16000>;
++              lltc,cell-count = <2>;
++      };
++    };

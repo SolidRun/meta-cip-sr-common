@@ -1,0 +1,33 @@
+From 6658f43c8a6e9ca8ba55542c67c63d3d437e9259 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Mon, 25 Jan 2021 14:46:39 -0500
+Subject: [PATCH] fb: mxc: move hdmi_enable_overflow_interrupts
+
+---
+ drivers/video/fbdev/mxc/mxc_hdmi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/fbdev/mxc/mxc_hdmi.c b/drivers/video/fbdev/mxc/mxc_hdmi.c
+index 310c00d6fe5c..f42d56dbf41c 100644
+--- a/drivers/video/fbdev/mxc/mxc_hdmi.c
++++ b/drivers/video/fbdev/mxc/mxc_hdmi.c
+@@ -1267,9 +1267,6 @@ static void mxc_hdmi_phy_init(struct mxc_hdmi *hdmi)
+ 			|| (hdmi->blank != FB_BLANK_UNBLANK))
+ 		return;
+ 
+-	if (!hdmi->hdmi_data.video_mode.mDVI)
+-		hdmi_enable_overflow_interrupts();
+-
+ 	/*check csc whether needed activated in HDMI mode */
+ 	cscon = (isColorSpaceConversion(hdmi) &&
+ 			!hdmi->hdmi_data.video_mode.mDVI);
+@@ -1285,6 +1282,9 @@ static void mxc_hdmi_phy_init(struct mxc_hdmi *hdmi)
+ 		hdmi_phy_configure(hdmi, 0, 8, cscon);
+ 	}
+ 
++	if (!hdmi->hdmi_data.video_mode.mDVI)
++		hdmi_enable_overflow_interrupts();
++
+ 	hdmi->phy_enabled = true;
+ }
+ 

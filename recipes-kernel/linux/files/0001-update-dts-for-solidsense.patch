@@ -1,27 +1,24 @@
-From 3850c844d4105228680b5804e265e11a3f18d8d8 Mon Sep 17 00:00:00 2001
-From: Eric Bree <eric@merkbree.com>
-Date: Wed, 3 Jun 2020 11:12:43 -0400
+From 7245cbebded11fd0a73d57c10ea7af4b0784c14c Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Tue, 10 Nov 2020 15:39:12 -0500
 Subject: [PATCH] update dts for solidsense
 
 ---
- arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi | 83 ++++++++++++++++++--
- arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi     |  3 +
- 2 files changed, 81 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi | 81 ++++++++++++++++++--
+ arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi     |  2 +
+ 2 files changed, 78 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi b/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
-index edadcf14ea21..aca6715bd4c8 100644
+index c6a285969039..0e092de417fe 100644
 --- a/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
 +++ b/arch/arm/boot/dts/imx6qdl-hummingboard2.dtsi
-@@ -156,6 +156,28 @@
- 		mux-ext-port = <5>;
- 		mux-int-port = <1>;
- 		ssi-controller = <&ssi1>;
-+		status = "disabled";
-+	};
+@@ -174,6 +174,26 @@
+ 			sound-dai = <&sgtl5000>;
+ 		};
+ 	};
 +
 +	leds {
 +		compatible = "gpio-leds";
-+
 +		red1 {
 +			label = "red1";
 +			gpios = <&gpio2 26 GPIO_ACTIVE_LOW>;
@@ -38,11 +35,12 @@ index edadcf14ea21..aca6715bd4c8 100644
 +			label = "green2";
 +			gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
 +		};
- 	};
++ 	};
  };
  
-@@ -163,12 +185,14 @@
- 	status = "okay";
+ &audmux {
+@@ -200,12 +220,14 @@
+ 	};
  };
  
 +#if 0
@@ -57,7 +55,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  
  &hdmi {
  	pinctrl-names = "default";
-@@ -197,6 +221,7 @@
+@@ -235,6 +257,7 @@
  		VDDA-supply = <&v_3v2>;
  		VDDD-supply = <&vcc_1p8>;
  		VDDIO-supply = <&v_3v2>;
@@ -65,7 +63,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  	};
  };
  
-@@ -207,12 +232,14 @@
+@@ -245,12 +268,14 @@
  	status = "okay";
  };
  
@@ -81,7 +79,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  
  &iomuxc {
  	pinctrl-names = "default";
-@@ -312,11 +339,38 @@
+@@ -350,11 +375,38 @@
  				/* SPDIF_OUT */
  				MX6QDL_PAD_GPIO_17__GPIO7_IO12 0x400130b1
  
@@ -120,7 +118,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  		pinctrl_hummingboard2_ecspi2: hummingboard2-ecspi2grp {
  			fsl,pins = <
  				MX6QDL_PAD_EIM_OE__ECSPI2_MISO	0x100b1
-@@ -325,6 +379,7 @@
+@@ -363,6 +415,7 @@
  				MX6QDL_PAD_EIM_RW__GPIO2_IO26	0x000b1 /* CS */
  			>;
  		};
@@ -128,7 +126,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  
  		pinctrl_hummingboard2_gpio7_9: hummingboard2-gpio7_9 {
  			fsl,pins = <
-@@ -352,12 +407,14 @@
+@@ -390,12 +443,14 @@
  			>;
  		};
  
@@ -143,7 +141,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  
  		pinctrl_hummingboard2_mipi: hummingboard2_mipi {
  			fsl,pins = <
-@@ -465,10 +522,17 @@
+@@ -502,10 +557,17 @@
  			>;
  		};
  
@@ -163,7 +161,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  			>;
  		};
  	};
-@@ -478,13 +542,14 @@
+@@ -515,13 +577,14 @@
  	pinctrl-names = "default";
  	pinctrl-0 = <&pinctrl_hummingboard2_pcie_reset>;
  	reset-gpio = <&gpio2 11 GPIO_ACTIVE_LOW>;
@@ -179,7 +177,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  };
  
  &pwm3 {
-@@ -529,9 +594,17 @@
+@@ -566,9 +629,17 @@
  	status = "okay";
  };
  
@@ -198,7 +196,7 @@ index edadcf14ea21..aca6715bd4c8 100644
  };
  
 diff --git a/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi b/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi
-index 44a97ba93a95..ae294f4cb304 100644
+index 352ac585ca6b..ae294f4cb304 100644
 --- a/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi
 +++ b/arch/arm/boot/dts/imx6qdl-sr-som-ti.dtsi
 @@ -143,6 +143,8 @@
@@ -210,11 +208,6 @@ index 44a97ba93a95..ae294f4cb304 100644
  	};
  };
  
-@@ -153,6 +155,7 @@
- 	bus-width = <4>;
- 	keep-power-in-suspend;
- 	mmc-pwrseq = <&pwrseq_ti_wifi>;
-+	cap-power-off-card;
- 	non-removable;
- 	vmmc-supply = <&vcc_3v3>;
- 	/* vqmmc-supply = <&nvcc_sd1>; - MMC layer doesn't like it! */
+-- 
+2.20.1
+
