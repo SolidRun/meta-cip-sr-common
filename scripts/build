@@ -99,6 +99,9 @@ override_config_file_values () {
 find_variant () {
 	variant="${1}"
 	case "${variant}" in
+		certification )
+			echo "Z"
+			;;
 		maersk )
 			echo "M"
 			;;

@@ -1,0 +1,107 @@
+# Copyright (C) 2016-2017, Solidrun, Eric Bree <eric.bree@solid-run.com>
+# SPDX-License-Identifier:	MIT
+# CIP core kas solidsense configuration
+header:
+    version: 7
+bblayers_conf_header:
+  meta-custom: |
+    LCONF_VERSION = "6"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+local_conf_header:
+  meta-custom: |
+    BB_NUMBER_THREADS ?= "${@oe.utils.cpu_count()}"
+    PARALLEL_MAKE ?= "-j ${@oe.utils.cpu_count()}"
+    PACKAGE_CLASSES ?= "package_ipk"
+    EXTRA_IMAGE_FEATURES = "debug-tweaks"
+    USER_CLASSES ?= "buildstats image-mklibs image-prelink"
+    PATCHRESOLVE = "noop"
+    BB_DISKMON_DIRS = "\
+        STOPTASKS,${TMPDIR},1G,100K \
+        STOPTASKS,${DL_DIR},1G,100K \
+        STOPTASKS,${SSTATE_DIR},1G,100K \
+        ABORT,${TMPDIR},100M,1K \
+        ABORT,${DL_DIR},100M,1K \
+        ABORT,${SSTATE_DIR},100M,1K"
+    CONF_VERSION = "1"
+    # Change as needed
+    #DL_DIR ?= "~/downloads"
+
+    # Remove warnings
+    WARN_QA_remove = "host-user-contaminated"
+
+    # Add distro features
+    DISTRO_FEATURES_append += "ipv6 polkit systemd sysvinit virtualization"
+    VIRTUAL-RUNTIME_init_manager = "systemd"
+    DISTRO_FEATURES_BACKFILL_CONSIDERED = "sysvinit"
+    VIRTUAL-RUNTIME_initscripts = ""
+    
+    # Enable read only rootfs
+    IMAGE_INSTALL_append += "initscripts-readonly-rootfs-overlay"
+
+    # Set users and passwords
+    # To create password for 'test'
+    #    printf "%q" "$(openssl passwd -6 test)"
+    INHERIT += "extrausers"
+    EXTRA_USERS_PARAMS = " \
+        usermod --password \
+        '\$6\$O6mi4EVySr\$iRTUoo7yhQEGoxtl3.46Ljhy2c/RHNyUS0/9JIq2nFxkPTTEJSKNwoVlQz7Ce.o4WYDbRMOkUMaDMgdGNhPgC/' \
+        root; \
+    "
+    EXTRA_USERS_PARAMS += " \
+        useradd --password \
+        '\$6\$IIvhzAmkoq\$fx6DpxdQaBFlGclWrfc5zm.jCDu//UyCUaaVybwhnmywTMhXoblZEE9e1pnAYxNWzW2PczBagHfOZrP/k0XA21' \
+        -G dialout,sudo,audio,video -d /data/solidsense solidsense \
+    "
+
+    #
+    # Install zimage, dtb and kernel modules
+    #
+    IMAGE_INSTALL_append += "kernel-devicetree kernel-image-zimage kernel-modules"
+    IMAGE_INSTALL_append += "firmware-imx-sdma-imx6q"
+
+    # Add additional packages
+    IMAGE_INSTALL_append += "openssh mmc-utils solidsense-scripts sudo"
+    IMAGE_INSTALL_append += "docker python3-docker-compose u-boot-fw-utils util-linux"
+    IMAGE_INSTALL_append += "init-ifupdown ifupdown dhcp-client"
+    IMAGE_INSTALL_append += "tzdata solidsense-provisioning solidsense-mqtt solidsense-vehicle"
+
+    # Factory
+    #IMAGE_INSTALL_append += "empty picocom"
+
+    # Temporary additional packages
+    IMAGE_INSTALL_append += "ppp wpa-supplicant wireless-regdb iw hostapd bluez5 bluez5-noinst-tools"
+    IMAGE_INSTALL_append += "nfs-utils modem-gps wirepas-gateway wirepas-gateway-dev dhcp-server bind"
+    IMAGE_INSTALL_append += "kura wireless-tools ble-gateway cronie openvpn openssl-bin"
+    IMAGE_INSTALL_append += "e2fsprogs-e2fsck e2fsprogs-mke2fs e2fsprogs-tune2fs e2fsprogs-badblocks e2fsprogs-resize2fs"
+
+    # Certification packages
+    IMAGE_INSTALL_append += "nrf52-dtm wl18xx-calibrator certification nodejs"
+    IMAGE_INSTALL_append += "connectd ckermit minicom picocom"
+
+    #     Debug
+    # IMAGE_INSTALL_append += "gdb strace tcpdump"
+    #     Java
+    PREFERRED_PROVIDER_virtual/java-native = "cacao-native"
+    PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
+    PREFERRED_RPROVIDER_java2-runtime = "openjdk-8"
+
+    # Mender
+    INHERIT += "mender-full"
+    PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils"
+    MENDER_FEATURES_ENABLE_append = " mender-uboot mender-image-sd"
+    MENDER_FEATURES_DISABLE_append = " mender-grub mender-image-uefi"
+    IMAGE_ROOTFS_EXCLUDE_PATH_append = " uboot"
+    MENDER_ARTIFACT_EXTRA_ARGS += "--no-checksum-provide"
+
+    # Preferred applications
+    PREFERRED_VERSION_kura = "5.0.0"
+    KURA_VERSION = "5.0.0"
+    PREFERRED_VERSION_wirepas-gateway = "1.3.0"
+    PREFERRED_VERSION_wirepas-messaging = "1.2.0"
+    PREFERRED_VERSION_python3-grpcio = "1.22.0"
+    PREFERRED_VERSION_python3-protobuf = "3.9.0"
+    PREFERRED_VERSION_python3-protobuf-native = "3.9.0"
+    PREFERRED_VERSION_python3-pyyaml = "5.1.2"
+    PREFERRED_VERSION_protobuf = "3.9.0"
+    PREFERRED_VERSION_protobuf-native = "3.9.0"
