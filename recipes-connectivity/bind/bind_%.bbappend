@@ -16,10 +16,7 @@ do_install_append () {
 
     install -d ${D}/var/named
     chown 991:988 ${D}/var/named
-    ln -s /etc/bind/db.root ${D}/var/named/named.ca
-    ln -s /etc/bind/zones.rfc1918 ${D}${sysconfdir}/named.rfc1912.zones
-}
 
-FILES_${PN} += " \
-    /var/named/named.ca \
-"
+    # remove named.conf
+    rm ${D}/${sysconfdir}/bind/named.conf
+}
