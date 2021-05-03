@@ -15,7 +15,7 @@ SRC_URI = " \
 
 SRCREV_gateway = "e6f2256bcbd34373b43f21055bda676b11c71cf1"
 SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "d90499f9f4bb798eb2dfbb43a762613dc6ce40da"
+SRCREV_SolidSense-V1 = "5c49d8e60476566db2adbac7db2bf38b8371232e"
 SRCREV_SolidSense-kura-wp = "69ae491521c4adb7e3967128af7f0f355495d5f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
@@ -142,9 +142,9 @@ do_install () {
     install -m 0755 ${S}/sink_service/build/sinkService ${D}/opt/SolidSense/bin/sinkService
 
     # Install the wirepas Kura dp
-    install -d ${D}/${KURA_PATH}/data/packages
+    install -d ${D}/${KURA_PATH}/packages
     install -m 0644 ${S-kura-wp}/com.solidsense.kura.WirepasConfigurationService/resources/dp/WirepasConfigurationService.dp \
-        ${D}${KURA_PATH}/data/packages
+        ${D}${KURA_PATH}/packages/WirepasConfigurationService_1.3.0.dp
 }
 
 FILES_${PN} = " \

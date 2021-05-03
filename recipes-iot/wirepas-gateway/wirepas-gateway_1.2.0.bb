@@ -12,7 +12,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "d90499f9f4bb798eb2dfbb43a762613dc6ce40da"
+SRCREV_SolidSense-V1 = "5c49d8e60476566db2adbac7db2bf38b8371232e"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_VERSION ?= "5.0.0-SNAPSHOT"
@@ -131,9 +131,9 @@ do_install () {
     install -m 0755 ${S}/sink_service/build/sinkService ${D}/opt/SolidSense/bin/sinkService
 
     # Install the wirepas Kura dp
-    install -d ${D}/${KURA_PATH}/data/packages
+    install -d ${D}/${KURA_PATH}/packages
     install -m 0644 ${S-V1}/Kura/wirepas/WirepasConfigurationService.dp \
-        ${D}${KURA_PATH}/data/packages
+        ${D}${KURA_PATH}/packages/WirepasConfigurationService_1.3.0.dp
 }
 
 FILES_${PN} = " \

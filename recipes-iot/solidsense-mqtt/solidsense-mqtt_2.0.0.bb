@@ -10,7 +10,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 SRCREV = "fc1307a0cf5bd1d9d537bbeb4a9113096edff6ac"
-SRCREV_SolidSense-V1 = "d90499f9f4bb798eb2dfbb43a762613dc6ce40da"
+SRCREV_SolidSense-V1 = "5c49d8e60476566db2adbac7db2bf38b8371232e"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_VERSION ?= "5.0.0-SNAPSHOT"
@@ -36,9 +36,9 @@ do_install () {
         ${D}${systemd_unitdir}/system/solidsense_mqtt.service
 
     # Install the SolidSense MQTT configuration service
-    install -d ${D}/${KURA_PATH}/data/packages
+    install -d ${D}/${KURA_PATH}/packages
     install -m 0644 ${S-V1}/Kura/plugins/SolidsenseMqttService.dp \
-        ${D}${KURA_PATH}/data/packages/SolidsenseMqttService_1.0.0.dp
+        ${D}${KURA_PATH}/packages/SolidsenseMqttService_1.0.0.dp
 }
 
 FILES_${PN} = " \
