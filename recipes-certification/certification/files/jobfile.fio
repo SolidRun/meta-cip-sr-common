@@ -1,0 +1,7 @@
+[random-writers]
+filename=/dev/mmcblk2:/dev/sda:/dev/sdb:/dev/sdc:/dev/sdd
+runtime=24H
+time_based
+rw=randrw
+size=64m
+numjobs=2
