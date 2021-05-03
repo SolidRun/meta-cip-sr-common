@@ -130,7 +130,7 @@ diff -aurN meta-iot-cloud/recipes-support/maven/maven_3.6.3.bb meta-iot-cloud.ne
 +    install -m 0755 ${S}/bin/mvnDebug ${D}${libdir}/${BPN}/bin/
 +    install -m 0755 ${S}/bin/mvnyjp ${D}${libdir}/${BPN}/bin/
 +    install -m 0644 ${S}/bin/m2.conf ${D}${libdir}/${BPN}/bin/
-+    
++
 +    install -d ${D}${libdir}/${BPN}/boot
 +    install -m 0644 ${S}/boot/* ${D}${libdir}/${BPN}/boot/
 +
