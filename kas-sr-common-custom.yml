@@ -31,7 +31,7 @@ local_conf_header:
     WARN_QA_remove = "host-user-contaminated"
 
     # Add distro features
-    DISTRO_FEATURES_append += "ipv6 systemd sysvinit virtualization ipv6"
+    DISTRO_FEATURES_append += "systemd sysvinit virtualization ipv6"
     VIRTUAL-RUNTIME_init_manager = "systemd"
     DISTRO_FEATURES_BACKFILL_CONSIDERED = "sysvinit"
     VIRTUAL-RUNTIME_initscripts = ""
