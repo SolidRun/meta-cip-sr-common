@@ -1,5 +1,5 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI += " \
-   file://interfaces \
-"
+do_install_append () {
+    rm ${D}${sysconfdir}/network/interfaces
+}
