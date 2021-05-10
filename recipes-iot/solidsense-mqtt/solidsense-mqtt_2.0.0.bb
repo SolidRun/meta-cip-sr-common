@@ -6,11 +6,11 @@ LIC_FILES_CHKSUM = " \
 "
 
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=Laurent-dev \
+    git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=master \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV = "fc1307a0cf5bd1d9d537bbeb4a9113096edff6ac"
-SRCREV_SolidSense-V1 = "5c49d8e60476566db2adbac7db2bf38b8371232e"
+SRCREV = "a0ab44ee6329efa388d123addeee63dc5e48edc3"
+SRCREV_SolidSense-V1 = "93500245e972c10572e663bc6bf5cb40d21bc2f9"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_VERSION ?= "5.0.0-SNAPSHOT"
