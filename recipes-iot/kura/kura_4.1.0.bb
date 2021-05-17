@@ -11,7 +11,7 @@ SRC_URI = " \
     git://github.com/eclipse/kura;branch=develop;rev=KURA_${PV}_RELEASE;destsuffix=kura;name=kura \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "93500245e972c10572e663bc6bf5cb40d21bc2f9"
+SRCREV_SolidSense-V1 = "0e5722c676c0d0595e9221a3e8b16fd9c0e0edd9"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura"
 KURA_PATH = "/opt/eclipse/kura_${PV}_solid_sense/"

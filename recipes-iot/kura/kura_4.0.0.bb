@@ -11,7 +11,7 @@ SRC_URI = " \
     file://kura-${PV}.tar.gz \
     file://kura.service \
 "
-SRCREV_SolidSense-V1 = "93500245e972c10572e663bc6bf5cb40d21bc2f9"
+SRCREV_SolidSense-V1 = "0e5722c676c0d0595e9221a3e8b16fd9c0e0edd9"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_PATH = "/opt/eclipse/kura_4.0.0_solid_sense/"
 

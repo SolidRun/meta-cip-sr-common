@@ -13,7 +13,7 @@ SRC_URI = " \
     file://polkit.kura \
     file://sudoers.kurad \
 "
-SRCREV_SolidSense-V1 = "93500245e972c10572e663bc6bf5cb40d21bc2f9"
+SRCREV_SolidSense-V1 = "0e5722c676c0d0595e9221a3e8b16fd9c0e0edd9"
 SRCREV_kura = "fd1d6d837481f8d3ad0b61567a29ca445bbe5272"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
