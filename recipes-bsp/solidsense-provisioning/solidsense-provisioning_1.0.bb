@@ -28,6 +28,9 @@ do_install () {
     # Install provisioning
     cp -a ${S-V1}/provisioning ${D}/opt/SolidSense/provisioning
     chown -R root:root ${D}/opt/SolidSense/provisioning
+
+    # Remove snapshot_0.xml as this is now in the kura recipe
+    rm -f ${D}/opt/SolidSense/template/kura/snapshot_0.xml
 }
 
 FILES_${PN} = " \

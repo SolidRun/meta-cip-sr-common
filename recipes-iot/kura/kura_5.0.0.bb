@@ -130,8 +130,8 @@ do_install () {
     install -m 0644 ${D}${KURA_VERSION_PATH}/user/snapshots/snapshot_0.xml ${D}${KURA_VERSION_PATH}/.data/snapshot_0.xml
 
     # Install snapshot_0.xml to template directory
-    #install -d ${D}/opt/SolidSense/template/kura/
-    #install -m 0644 ${D}${KURA_VERSION_PATH}/user/snapshots/snapshot_0.xml ${D}/opt/SolidSense/template/kura/snapshot_0.xml
+    install -d ${D}/opt/SolidSense/template/kura/
+    install -m 0644 ${D}${KURA_VERSION_PATH}/user/snapshots/snapshot_0.xml ${D}/opt/SolidSense/template/kura/snapshot_0.xml
 
     # Install networking configuration
 
