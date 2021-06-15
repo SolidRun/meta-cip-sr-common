@@ -4,6 +4,7 @@ Description=Start Kura
 [Service]
 Type=forking
 ExecStart=/opt/eclipse/kura/bin/start_kura_background.sh
+ExecStopPost=/sbin/ifdown eth0 ; /sbin/ifup eth0
 PIDFile=/run/kura.pid
 
 [Install]
