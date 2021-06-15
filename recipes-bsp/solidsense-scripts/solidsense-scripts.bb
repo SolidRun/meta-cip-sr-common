@@ -9,9 +9,9 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     file://bind9.init \
     file://gpl-2.0.txt \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV_SolidSense-V1 = "0e5722c676c0d0595e9221a3e8b16fd9c0e0edd9"
+SRCREV_SolidSense-V1 = "cd7f7c7818c2aa563e0500770b3bb0ac7d37a6fa"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 SYSTEMD_SERVICE_${PN} = "check_solidsense.service"
@@ -40,11 +40,13 @@ do_install () {
     ln -s /etc/solidsense ${D}/etc/solidsense_device
 
     install -d ${D}/etc/udev/rules.d
+    install -m 0644 ${S-V1}/leds/udev/99-leds-permission.rules ${D}/etc/udev/rules.d
     install -m 0644 ${S-V1}/wifi/udev/99-power-save.rules ${D}/etc/udev/rules.d
 }
 
 FILES_${PN} = " \
     /etc/init.d/bind9 \
+    /etc/udev/rules.d/99-leds-permission.rules \
     /etc/udev/rules.d/99-power-save.rules \
     /etc/solidsense_device \
     /opt/scripts/check_solidsense \

@@ -49,9 +49,10 @@ local_conf_header:
         root; \
     "
     EXTRA_USERS_PARAMS += " \
+        groupadd leds; \
         useradd --password \
         '\$6\$IIvhzAmkoq\$fx6DpxdQaBFlGclWrfc5zm.jCDu//UyCUaaVybwhnmywTMhXoblZEE9e1pnAYxNWzW2PczBagHfOZrP/k0XA21' \
-        -G dialout,sudo,audio,video -d /data/solidsense solidsense \
+        -G dialout,sudo,audio,video,leds -d /data/solidsense solidsense; \
     "
 
     #
