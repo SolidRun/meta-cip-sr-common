@@ -5,10 +5,10 @@ LIC_FILES_CHKSUM = " \
     file://../SolidSense-V1/LICENSE;md5=c7cc8aa73fb5717f8291fcec5ce9ed6c \
 "
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2-provisoning;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "0e5722c676c0d0595e9221a3e8b16fd9c0e0edd9"
+SRCREV_SolidSense-V1 = "e14c270016ff405ca685539b5712436f0c0db742"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_install () {
