@@ -8,13 +8,15 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
-    git://github.com/SolidRun/kura.git;branch=solidsense-develop;destsuffix=kura-${PV};name=kura \
+    git://github.com/SolidRun/kura.git;branch=fix_component_update;destsuffix=kura-${PV};name=kura \
     file://kura.service \
     file://polkit.kura \
     file://sudoers.kurad \
+    file://equinox-SDK-4.17.zp \
+    file://0001-use-local-file-for-equinox.download.url.patch \
 "
 SRCREV_SolidSense-V1 = "e14c270016ff405ca685539b5712436f0c0db742"
-SRCREV_kura = "fd1d6d837481f8d3ad0b61567a29ca445bbe5272"
+SRCREV_kura = "ca33cd65275079e259e468ccc13957c3dd8ca614"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
 KURA_VERSION = "${PV}"
@@ -54,6 +56,7 @@ USERMOD_PARAM_${PN} = " \
 do_compile () {
     export JAVA_HOME="${JAVA_HOME}"
 
+    mv ${WORKDIR}/equinox-SDK-4.17.zp ${WORKDIR}/equinox-SDK-4.17.zip
     # Kura
     cd ${S-KURA}
     ./build-all.sh
