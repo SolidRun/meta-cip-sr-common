@@ -15,7 +15,7 @@ SRC_URI = " \
     file://equinox-SDK-4.17.zp \
     file://0001-use-local-file-for-equinox.download.url.patch \
 "
-SRCREV_SolidSense-V1 = "e14c270016ff405ca685539b5712436f0c0db742"
+SRCREV_SolidSense-V1 = "628fa848971ded2e2ad028b2c8a1b4b49e86eadc"
 SRCREV_kura = "ca33cd65275079e259e468ccc13957c3dd8ca614"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
