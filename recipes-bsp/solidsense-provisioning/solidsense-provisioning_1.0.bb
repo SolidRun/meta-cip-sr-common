@@ -8,7 +8,7 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "628fa848971ded2e2ad028b2c8a1b4b49e86eadc"
+SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_install () {
