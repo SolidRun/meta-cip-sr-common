@@ -49,7 +49,7 @@ local_conf_header:
         root; \
     "
     EXTRA_USERS_PARAMS += " \
-        groupadd leds; \
+        groupadd --system leds; \
         useradd --password \
         '\$6\$IIvhzAmkoq\$fx6DpxdQaBFlGclWrfc5zm.jCDu//UyCUaaVybwhnmywTMhXoblZEE9e1pnAYxNWzW2PczBagHfOZrP/k0XA21' \
         -G dialout,sudo,audio,video,leds -d /data/solidsense solidsense; \
@@ -94,11 +94,11 @@ local_conf_header:
     # Preferred applications
     PREFERRED_VERSION_kura = "5.0.0"
     KURA_VERSION = "5.0.0"
-    PREFERRED_VERSION_wirepas-gateway = "1.3.0"
+    PREFERRED_VERSION_wirepas-gateway = "1.4.0"
     PREFERRED_VERSION_wirepas-messaging = "1.2.0"
     PREFERRED_VERSION_python3-grpcio = "1.22.0"
-    PREFERRED_VERSION_python3-protobuf = "3.9.0"
-    PREFERRED_VERSION_python3-protobuf-native = "3.9.0"
+    PREFERRED_VERSION_python3-protobuf = "3.17.3"
+    PREFERRED_VERSION_python3-protobuf-native = "3.17.3"
     PREFERRED_VERSION_python3-pyyaml = "5.4"
-    PREFERRED_VERSION_protobuf = "3.9.0"
-    PREFERRED_VERSION_protobuf-native = "3.9.0"
+    PREFERRED_VERSION_protobuf = "3.17.3"
+    PREFERRED_VERSION_protobuf-native = "3.17.3"
