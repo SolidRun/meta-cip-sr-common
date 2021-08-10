@@ -7,21 +7,22 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=cb6bb17b0d0cca188339074207e9f4d8"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
-    git://github.com/SolidRun/gateway;branch=solidsense-1.3;name=gateway \
+    git://github.com/SolidRun/gateway;branch=solidsense-1.4;name=gateway \
     git://github.com/wirepas/c-mesh-api;destsuffix=git/sink_service/c-mesh-api;name=c-mesh-api \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_gateway = "a868f6ac0c640a7ef9a357ce61d54bf78e690d40"
-SRCREV_c-mesh-api = "415fb60d317f3c47f39f570701a7cce4c2f0f17c"
-SRCREV_SolidSense-V1 = "628fa848971ded2e2ad028b2c8a1b4b49e86eadc"
+SRCREV_gateway = "5c84dd7c0b4e1c1d87dfdd02c0a4c5ca92d012f0"
+SRCREV_c-mesh-api = "ce17a472988c5c1195db4d6427a546ed17c802da"
+SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
-KURA_VERSION ?= "5.0.0-SNAPSHOT"
+KURA_VERSION ?= "5.0.0"
 KURA_PATH = "/opt/eclipse/kura_${KURA_VERSION}_solid_sense/"
 
 DEPENDS = " \
     python3-native \
+    python3-pkgconfig-native \
     systemd \
 "
 RDEPENDS_${PN} = " \
@@ -32,6 +33,7 @@ RDEPENDS_${PN} = " \
     systemd \
     wirepas-firmware \
     wirepas-firmware-check \
+    wirepas-mesh-messaging \
     wirepas-messaging \
 "
 
@@ -79,6 +81,7 @@ do_install () {
     # Make sure we use /usr/bin/env python
     sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' ${D}${bindir}/wm-gw
     sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' ${D}${bindir}/wm-dbus-print
+    sed -i -e '1s|^#!.*|#!/usr/bin/env python3|' ${D}${bindir}/wm-node-conf
 
     # Install the require grpc
     install -d ${D}/opt/SolidSense/wirepas/grpc
@@ -147,10 +150,9 @@ do_install () {
 FILES_${PN} = " \
   /etc \
   /opt/eclipse \
-  /opt/eclipse/kura_4.0.0_solid_sense \
-  /opt/eclipse/kura_4.0.0_solid_sense/data \
-  /opt/eclipse/kura_4.0.0_solid_sense/data/packages \
-  /opt/eclipse/kura_4.0.0_solid_sense/data/packages/WirepasConfigurationService.dp \
+  /opt/eclipse/kura_5.0.0_solid_sense \
+  /opt/eclipse/kura_5.0.0_solid_sense/packages \
+  /opt/eclipse/kura_5.0.0_solid_sense/packages/WirepasConfigurationService_1.3.0.dp \
   /opt/SolidSense/wirepas \
   /opt/SolidSense/bin/sinkService \
   /opt/SolidSense/wirepas/configure_node.py \
@@ -171,29 +173,37 @@ FILES_${PN} = " \
   /usr/share \
   /usr/bin/configure_node \
   /usr/bin/sinkctl \
+  /usr/bin/wm-node-conf \
   /usr/bin/wm-gw \
   /usr/bin/wm-dbus-print \
   /usr/bin/read_sink \
   /usr/lib/python3.7/site-packages/dbusCExtension.cpython-37m-arm-linux-gnueabihf.so \
   /usr/lib/python3.7/site-packages/wirepas_gateway \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/json_plugin.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/transport_service.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__init__.py \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/configure_node.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__main__.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__about__.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus_print_client.py \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/plugin_module.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__ \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/utils/solidsense_led.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/serialization_tools.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__init__.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/log_tools.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/argument_tools.py \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/utils/connection_monitor.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__ \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__/serialization_tools.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__/argument_tools.cpython-37.pyc \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__/connection_monitor.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__/log_tools.cpython-37.pyc \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__/solidsense_led.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/utils/__pycache__/__init__.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus/return_code.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus/__init__.py \
@@ -206,11 +216,14 @@ FILES_${PN} = " \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus/__pycache__/sink_manager.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus/__pycache__/__init__.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/dbus/__pycache__/dbus_client.cpython-37.pyc \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/configure_node.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/dbus_print_client.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/__about__.cpython-37.pyc \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/json_plugin.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/__init__.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/__main__.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/transport_service.cpython-37.pyc \
+  /usr/lib/python3.7/site-packages/wirepas_gateway/__pycache__/plugin_module.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol/topic_helper.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol/__init__.py \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol/mqtt_wrapper.py \
@@ -218,12 +231,12 @@ FILES_${PN} = " \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol/__pycache__/mqtt_wrapper.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol/__pycache__/topic_helper.cpython-37.pyc \
   /usr/lib/python3.7/site-packages/wirepas_gateway/protocol/__pycache__/__init__.cpython-37.pyc \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info/entry_points.txt \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info/SOURCES.txt \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info/requires.txt \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info/PKG-INFO \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info/dependency_links.txt \
-  /usr/lib/python3.7/site-packages/wirepas_gateway-1.3.0-py3.7.egg-info/top_level.txt \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info/entry_points.txt \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info/SOURCES.txt \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info/requires.txt \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info/PKG-INFO \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info/dependency_links.txt \
+  /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info/top_level.txt \
   /usr/share/wirepas_gateway-extras \
   /usr/share/wirepas_gateway-extras/package \
   /usr/share/wirepas_gateway-extras/package/setup.py \
