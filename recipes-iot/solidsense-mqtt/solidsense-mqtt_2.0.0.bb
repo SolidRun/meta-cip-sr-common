@@ -9,11 +9,11 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-MQTT.git;protocol=ssh;branch=master \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
-SRCREV = "e95f73994c230f95e2579ae2733eee8784489078"
-SRCREV_SolidSense-V1 = "628fa848971ded2e2ad028b2c8a1b4b49e86eadc"
+SRCREV = "69252b836b784ef303bd5f8648bdf0be4dddbeb2"
+SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
-KURA_VERSION ?= "5.0.0-SNAPSHOT"
+KURA_VERSION ?= "5.0.0"
 KURA_PATH = "/opt/eclipse/kura_${KURA_VERSION}_solid_sense"
 
 SYSTEMD_SERVICE_${PN} = "solidsense_mqtt.service"
