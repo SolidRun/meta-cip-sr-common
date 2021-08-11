@@ -125,6 +125,11 @@ calc_duration () {
 }
 
 do_build () {
+	# Remove the ~/.m2 cache directory this can occasionally cause issues with building kura.
+	if [ -d "${HOME}/.m2" ]; then
+		rm -rf "${HOME}/.m2"
+	fi
+	# Create log directory
 	if [ ! -d "deploy/logs/${VERSION}" ]; then
 		mkdir -p "deploy/logs/${VERSION}"
 	fi
@@ -340,6 +345,9 @@ do_deploy_sign_artifact () {
 		if [ ! -d "${dir_deploy}" ]; then
 			mkdir -p "${dir_deploy}"
 		fi
+
+		# Keep an unsigned artifact
+		cp "${mender_artifact}" "${mender_artifact}.unsigned"
 
 		# Sign and verify artifacts
 		printf "    ${RED}%s${NC}" "${device}"
