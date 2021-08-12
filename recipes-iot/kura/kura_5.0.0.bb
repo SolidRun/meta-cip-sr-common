@@ -14,7 +14,7 @@ SRC_URI = " \
     file://sudoers.kurad \
 "
 SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
-SRCREV_kura = "29c5e7a821fba6ac4351e6a23cbd53605a860c48"
+SRCREV_kura = "2fe9e672f3488654afd651caf8a09769f1aa623b"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
 KURA_VERSION = "${PV}"
