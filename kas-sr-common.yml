@@ -28,7 +28,7 @@ local_conf_header:
     #DL_DIR ?= "~/downloads"
 
     # Remove warnings
-    WARN_QA_remove = "host-user-contaminated"
+    #WARN_QA_remove = "host-user-contaminated"
 
     # Add distro features
     DISTRO_FEATURES_append += "ipv6 polkit systemd sysvinit virtualization"
