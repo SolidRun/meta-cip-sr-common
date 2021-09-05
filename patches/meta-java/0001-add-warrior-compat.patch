@@ -1,0 +1,27 @@
+From 51410340344253f5dc68c6ebde1c4d5b2b3eaa90 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Wed, 1 Sep 2021 19:08:05 -0400
+Subject: [PATCH] add warrior to layer compat
+
+Signed-off-by: Eric Bree <eric.bree@solid-run.com>
+
+---
+ conf/layer.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/conf/layer.conf b/conf/layer.conf
+index 7ef116d..efd710c 100644
+--- a/conf/layer.conf
++++ b/conf/layer.conf
+@@ -7,7 +7,7 @@ BBFILES += "${LAYERDIR}/recipes*/*/*.bb ${LAYERDIR}/recipes*/*/*.bbappend"
+ BBFILE_COLLECTIONS += "meta-java"
+ BBFILE_PATTERN_meta-java := "^${LAYERDIR}/"
+ BBFILE_PRIORITY_meta-java = "10"
+-LAYERSERIES_COMPAT_meta-java = "dunfell gatesgarth hardknott"
++LAYERSERIES_COMPAT_meta-java = "dunfell gatesgarth hardknott warrior"
+ LAYERDEPENDS_meta-java += "openembedded-layer"
+ 
+ LICENSE_PATH += "${LAYERDIR}/licenses"
+-- 
+2.20.1
+

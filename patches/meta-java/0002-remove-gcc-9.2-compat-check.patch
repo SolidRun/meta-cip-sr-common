@@ -1,0 +1,30 @@
+From 8a8b1f8dee5bfa656e617032a9daddd996192c3a Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric.bree@solid-run.com>
+Date: Wed, 1 Sep 2021 20:55:40 -0400
+Subject: [PATCH] remove check for gcc 9.2 compat
+
+Signed-off-by: Eric Bree <eric.bree@solid-run.com>
+
+---
+ recipes-core/icedtea/icedtea7-native.inc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/recipes-core/icedtea/icedtea7-native.inc b/recipes-core/icedtea/icedtea7-native.inc
+index ee94589..973ba53 100644
+--- a/recipes-core/icedtea/icedtea7-native.inc
++++ b/recipes-core/icedtea/icedtea7-native.inc
+@@ -29,9 +29,9 @@ CXX_append = " -std=gnu++98"
+ CFLAGS_append = " -Wno-error=stringop-overflow -Wno-error=return-type"
+ 
+ # oe.utils.get_host_compiler_version returns "gcc, 9.2" and we want -> "9"
+-HOST_COMPILER_MAJOR="${@oe.utils.get_host_compiler_version(d)[1].split(".", 2)[0]}"
++#HOST_COMPILER_MAJOR="${@oe.utils.get_host_compiler_version(d)[1].split(".", 2)[0]}"
+ # if compiler version 9 detected, add more CFLAGS
+-CFLAGS_append = " ${@oe.utils.conditional('HOST_COMPILER_MAJOR', '9', '-Wno-error=format-overflow', '', d)}"
++#CFLAGS_append = " ${@oe.utils.conditional('HOST_COMPILER_MAJOR', '9', '-Wno-error=format-overflow', '', d)}"
+ 
+ # Explicitly pass -fcommon since GCC 10 defaults to -fno-common for C sources
+ CFLAGS_append = " -fcommon"
+-- 
+2.20.1
+
