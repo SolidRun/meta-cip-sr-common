@@ -1,0 +1,63 @@
+From 37a4a6f697ac257e12f9aebe9fcf9b8b3e94843b Mon Sep 17 00:00:00 2001
+From: Jon Nettleton <jon@solid-run.com>
+Date: Mon, 30 Aug 2021 14:49:11 +0200
+Subject: [PATCH 4/8] jikes: Patch jikes to work with Aarch64
+
+Signed-off-by: Jon Nettleton <jon@solid-run.com>
+---
+ recipes-core/jikes/files/deprecated.patch | 27 +++++++++++++++++++++++
+ recipes-core/jikes/jikes_1.22.bb          |  4 +++-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+ create mode 100644 recipes-core/jikes/files/deprecated.patch
+
+diff --git a/recipes-core/jikes/files/deprecated.patch b/recipes-core/jikes/files/deprecated.patch
+new file mode 100644
+index 0000000..0cc1f80
+--- /dev/null
++++ b/recipes-core/jikes/files/deprecated.patch
+@@ -0,0 +1,27 @@
++diff --git a/src/decl.cpp b/src/decl.cpp
++index ce638aa..31751dc 100644
++--- a/src/decl.cpp
+++++ b/src/decl.cpp
++@@ -2596,7 +2596,9 @@ void Semantic::CheckMethodOverride(MethodSymbol* method,
++     //
++     if (control.option.deprecation &&
++         hidden_method -> IsDeprecated() &&
++-        ! method -> containing_type -> file_symbol -> IsClassOnly())
+++        ! method -> containing_type -> file_symbol -> IsClassOnly() &&
+++        ! method -> IsDeprecated() &&
+++        ! InDeprecatedContext())
++     {
++         ReportSemError(SemanticError::DEPRECATED_METHOD_OVERRIDE,
++                        left_tok, right_tok, method -> Header(),
++diff --git a/src/error.cpp b/src/error.cpp
++index 9fbfb30..7e0078c 100644
++--- a/src/error.cpp
+++++ b/src/error.cpp
++@@ -513,6 +513,7 @@ void SemanticError::StaticInitializer()
++     warning[DEPRECATED_FIELD] = WEAK_WARNING;
++     warning[DEPRECATED_METHOD] = WEAK_WARNING;
++     warning[DEPRECATED_CONSTRUCTOR] = WEAK_WARNING;
+++    warning[DEPRECATED_METHOD_OVERRIDE] = WEAK_WARNING;
++
++     warning[UNNECESSARY_TYPE_IMPORT] = WEAK_WARNING;
++     warning[MULTIPLE_PUBLIC_TYPES] = WEAK_WARNING;
+diff --git a/recipes-core/jikes/jikes_1.22.bb b/recipes-core/jikes/jikes_1.22.bb
+index 233005a..562a8e4 100644
+--- a/recipes-core/jikes/jikes_1.22.bb
++++ b/recipes-core/jikes/jikes_1.22.bb
+@@ -7,7 +7,9 @@ LIC_FILES_CHKSUM = " \
+                     file://COPYING;md5=2d52359fd0d8f0c3e371e4cd19b213c0 \
+                     file://doc/license.htm;md5=43506e48033a385dc0936f620ae2c745 \
+                    "
+-SRC_URI = "${SOURCEFORGE_MIRROR}/jikes/jikes-${PV}.tar.bz2"
++SRC_URI = "${SOURCEFORGE_MIRROR}/jikes/jikes-${PV}.tar.bz2 \
++           file://deprecated.patch \
++"
+ 
+ inherit autotools update-alternatives relative_symlinks
+ 
+-- 
+2.33.0
+

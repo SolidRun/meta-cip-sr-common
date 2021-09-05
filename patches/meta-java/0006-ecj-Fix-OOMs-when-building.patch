@@ -1,0 +1,32 @@
+From e037604ec339a0a659905b8b1776120897907f35 Mon Sep 17 00:00:00 2001
+From: Jon Nettleton <jon@solid-run.com>
+Date: Mon, 30 Aug 2021 14:51:15 +0200
+Subject: [PATCH 6/8] ecj: Fix OOMs when building
+
+I found that setting the minimum memory requirement fixed OOMs seen
+when bootstrapping with ecj.  Max memory is already set to 768M by
+default.  Also using single threading also helped resolve addition
+compilation errors.  This is only used on early bootstrap builds
+so the performance penalty for stability is acceptable.
+
+Signed-off-by: Jon Nettleton <jon@solid-run.com>
+---
+ recipes-core/ecj/files/ecj.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-core/ecj/files/ecj.in b/recipes-core/ecj/files/ecj.in
+index caebed3..980b2fa 100755
+--- a/recipes-core/ecj/files/ecj.in
++++ b/recipes-core/ecj/files/ecj.in
+@@ -3,7 +3,7 @@ error_max=21
+ error_occured=true
+ error_number=0
+ while [ ${error_counter} -le ${error_max} -a ${error_occured} = true ]; do
+-    ${RUNTIME} -Xmx1024m -cp ${ECJ_JAR} org.eclipse.jdt.internal.compiler.batch.Main ${1+"$@"}
++    ${RUNTIME} -Xms64m -Djdt.compiler.useSingleThread=true -cp ${ECJ_JAR} org.eclipse.jdt.internal.compiler.batch.Main ${1+"$@"}
+     error_number=$?
+     if [ ${error_number} -eq 139 -o ${error_number} -eq 134 ]; then
+         echo "ecj crashed ${error_counter} - silently trying again"
+-- 
+2.33.0
+

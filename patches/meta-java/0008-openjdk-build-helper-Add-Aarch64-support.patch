@@ -1,0 +1,26 @@
+From 97a7edccbd875b6d0d0d17fe133534f6ae221b28 Mon Sep 17 00:00:00 2001
+From: Jon Nettleton <jon@solid-run.com>
+Date: Mon, 30 Aug 2021 14:54:48 +0200
+Subject: [PATCH 8/8] openjdk-build-helper: Add Aarch64 support
+
+Signed-off-by: Jon Nettleton <jon@solid-run.com>
+---
+ classes/openjdk-build-helper.bbclass | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/classes/openjdk-build-helper.bbclass b/classes/openjdk-build-helper.bbclass
+index 4e334c2..ac4c19b 100644
+--- a/classes/openjdk-build-helper.bbclass
++++ b/classes/openjdk-build-helper.bbclass
+@@ -80,6 +80,8 @@ def openjdk_build_helper_get_llvm_configure_arch(d):
+         arch = "mips"
+     elif arch in ['powerpc', 'powerpc64']:
+         arch = "powerpc"
++    elif arch == "aarch64":
++        arch = "aarch64"
+     elif arch == "arm":
+         arch = "arm"
+     else:
+-- 
+2.33.0
+

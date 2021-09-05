@@ -1,0 +1,119 @@
+From ef9f52a2c38f7d2b4a52d83bd7a3fd2c4fde3f4c Mon Sep 17 00:00:00 2001
+From: Jon Nettleton <jon@solid-run.com>
+Date: Mon, 30 Aug 2021 14:38:31 +0200
+Subject: [PATCH 2/8] Patch classpath to allow native builds on Aarch64
+
+Signed-off-by: Jon Nettleton <jon@solid-run.com>
+---
+ .../classpath/classpath-0.93/aarch64.patch    | 19 +++++++++++++++++++
+ .../classpath/classpath-0.99/aarch64.patch    | 19 +++++++++++++++++++
+ .../classpath-initial-native_0.93.bb          |  1 +
+ recipes-core/classpath/classpath-native.inc   |  2 ++
+ .../classpath/classpath-native_0.99.bb        |  1 +
+ recipes-core/classpath/classpath_0.99.bb      |  1 +
+ 6 files changed, 43 insertions(+)
+ create mode 100644 recipes-core/classpath/classpath-0.93/aarch64.patch
+ create mode 100644 recipes-core/classpath/classpath-0.99/aarch64.patch
+
+diff --git a/recipes-core/classpath/classpath-0.93/aarch64.patch b/recipes-core/classpath/classpath-0.93/aarch64.patch
+new file mode 100644
+index 0000000..51d1cad
+--- /dev/null
++++ b/recipes-core/classpath/classpath-0.93/aarch64.patch
+@@ -0,0 +1,19 @@
++Upstream-Status: Inappropriate [upstream is dead]
++
++Signed-off-by: Ricardo Ribalda <ricardo@ribalda.com>
++
++diff --git a/native/fdlibm/ieeefp.h b/native/fdlibm/ieeefp.h
++index c230bbb..700dd3a 100644
++--- a/native/fdlibm/ieeefp.h
+++++ b/native/fdlibm/ieeefp.h
++@@ -158,6 +158,10 @@
++ #define __IEEE_BIG_ENDIAN
++ #endif
++
+++#ifdef __aarch64__
+++#define __IEEE_LITTLE_ENDIAN
+++#endif
+++
++ #ifndef __IEEE_BIG_ENDIAN
++ #ifndef __IEEE_LITTLE_ENDIAN
++ #error Endianess not declared!!
+diff --git a/recipes-core/classpath/classpath-0.99/aarch64.patch b/recipes-core/classpath/classpath-0.99/aarch64.patch
+new file mode 100644
+index 0000000..51d1cad
+--- /dev/null
++++ b/recipes-core/classpath/classpath-0.99/aarch64.patch
+@@ -0,0 +1,19 @@
++Upstream-Status: Inappropriate [upstream is dead]
++
++Signed-off-by: Ricardo Ribalda <ricardo@ribalda.com>
++
++diff --git a/native/fdlibm/ieeefp.h b/native/fdlibm/ieeefp.h
++index c230bbb..700dd3a 100644
++--- a/native/fdlibm/ieeefp.h
+++++ b/native/fdlibm/ieeefp.h
++@@ -158,6 +158,10 @@
++ #define __IEEE_BIG_ENDIAN
++ #endif
++
+++#ifdef __aarch64__
+++#define __IEEE_LITTLE_ENDIAN
+++#endif
+++
++ #ifndef __IEEE_BIG_ENDIAN
++ #ifndef __IEEE_LITTLE_ENDIAN
++ #error Endianess not declared!!
+diff --git a/recipes-core/classpath/classpath-initial-native_0.93.bb b/recipes-core/classpath/classpath-initial-native_0.93.bb
+index 51229ec..36c2eab 100644
+--- a/recipes-core/classpath/classpath-initial-native_0.93.bb
++++ b/recipes-core/classpath/classpath-initial-native_0.93.bb
+@@ -11,6 +11,7 @@ PR = "${INC_PR}.2"
+ SRC_URI += " \
+ 	    file://autotools.patch \
+ 	    file://miscompilation.patch \
++	    file://aarch64.patch \
+ 	   "
+ SRC_URI[md5sum] = "ffa9e9cac31c5acbf0ea9eff9efa923d"
+ SRC_URI[sha256sum] = "df2d093612abd23fe67e9409d89bb2a8e79b1664fe2b2da40e1c8ed693e32945"
+diff --git a/recipes-core/classpath/classpath-native.inc b/recipes-core/classpath/classpath-native.inc
+index b1de458..00af570 100644
+--- a/recipes-core/classpath/classpath-native.inc
++++ b/recipes-core/classpath/classpath-native.inc
+@@ -16,6 +16,8 @@ export JAVAC="${STAGING_BINDIR_NATIVE}/ecj-initial"
+ export JAVACFLAGS="-nowarn"
+ 
+ EXTRA_OECONF = "\
++    GCJ_JAVAC_TRUE=no \
++    ac_cv_prog_java_works=yes \
+     --with-glibj \
+     --disable-Werror \
+     --disable-alsa \
+diff --git a/recipes-core/classpath/classpath-native_0.99.bb b/recipes-core/classpath/classpath-native_0.99.bb
+index a1e1e0f..5e4ea74 100644
+--- a/recipes-core/classpath/classpath-native_0.99.bb
++++ b/recipes-core/classpath/classpath-native_0.99.bb
+@@ -10,6 +10,7 @@ SRC_URI += " \
+             file://autotools.patch \
+             file://miscompilation.patch \
+             file://toolwrapper-exithook.patch \
++            file://aarch64.patch \
+            "
+ SRC_URI[md5sum] = "0ae1571249172acd82488724a3b8acb4"
+ SRC_URI[sha256sum] = "f929297f8ae9b613a1a167e231566861893260651d913ad9b6c11933895fecc8"
+diff --git a/recipes-core/classpath/classpath_0.99.bb b/recipes-core/classpath/classpath_0.99.bb
+index 6aa3baa..714503a 100644
+--- a/recipes-core/classpath/classpath_0.99.bb
++++ b/recipes-core/classpath/classpath_0.99.bb
+@@ -14,6 +14,7 @@ SRC_URI += " \
+             file://toolwrapper-exithook.patch \
+             file://use_libdir.patch \
+             file://freetype2.patch \
++            file://aarch64.patch \
+            "
+ 
+ SRC_URI[md5sum] = "0ae1571249172acd82488724a3b8acb4"
+-- 
+2.33.0
+

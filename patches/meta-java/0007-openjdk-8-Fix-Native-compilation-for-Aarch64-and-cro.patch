@@ -1,0 +1,137 @@
+From 8f7839f295384f836a6e83e2aeddfcfc0253237b Mon Sep 17 00:00:00 2001
+From: Jon Nettleton <jon@solid-run.com>
+Date: Mon, 30 Aug 2021 14:53:38 +0200
+Subject: [PATCH 7/8] openjdk-8: Fix Native compilation for Aarch64 and
+ cross_compilation failures
+
+This is a combined patch that both fixes native and cross_compilation issues
+when targeting Aarch64
+
+Signed-off-by: Jon Nettleton <jon@solid-run.com>
+---
+ recipes-core/openjdk/openjdk-8-cross.inc      |  2 +
+ recipes-core/openjdk/openjdk-8-native_272.bb  |  8 +++-
+ recipes-core/openjdk/openjdk-8-release.inc    |  6 ---
+ .../1009-hotspot-fix-adlc-flags.patch         | 44 +++++++++++--------
+ 4 files changed, 35 insertions(+), 25 deletions(-)
+
+diff --git a/recipes-core/openjdk/openjdk-8-cross.inc b/recipes-core/openjdk/openjdk-8-cross.inc
+index 25d971f..2784860 100644
+--- a/recipes-core/openjdk/openjdk-8-cross.inc
++++ b/recipes-core/openjdk/openjdk-8-cross.inc
+@@ -43,6 +43,8 @@ PACKAGECONFIG[repack] = ",,,"
+ 
+ PACKAGECONFIG[kerberos] = ",,krb5"
+ 
++EXTRA_OECONF_append = " --with-stdc++lib=dynamic "
++
+ require openjdk-8-common.inc
+ 
+ JAVA_HOME[unexport] = "1"
+diff --git a/recipes-core/openjdk/openjdk-8-native_272.bb b/recipes-core/openjdk/openjdk-8-native_272.bb
+index 39321f2..fe03af8 100644
+--- a/recipes-core/openjdk/openjdk-8-native_272.bb
++++ b/recipes-core/openjdk/openjdk-8-native_272.bb
+@@ -1,2 +1,8 @@
+-require openjdk-8-release.inc
++inherit native
++
++INC_FILE_SUFFIX = ""
++INC_FILE_SUFFIX_aarch64 = "-aarch64"
++INC_FILE_SUFFIX_armv7a = "-aarch32"
++INC_FILE_SUFFIX_armv7ve = "-aarch32"
++require openjdk-8-release${INC_FILE_SUFFIX}.inc
+ require openjdk-8-native.inc
+diff --git a/recipes-core/openjdk/openjdk-8-release.inc b/recipes-core/openjdk/openjdk-8-release.inc
+index 28429f8..58cbea7 100644
+--- a/recipes-core/openjdk/openjdk-8-release.inc
++++ b/recipes-core/openjdk/openjdk-8-release.inc
+@@ -1,11 +1,5 @@
+ require openjdk-8-release-common.inc
+ 
+-# We do not yet work for aarch64, and we make sure
+-# to use the aarch32 port for ARMv7.
+-COMPATIBLE_HOST = "^(?!(aarch64)).*$"
+-COMPATIBLE_HOST_armv7a = "^$"
+-COMPATIBLE_HOST_armv7ve = "^$"
+-
+ CORBA_CHANGESET = "jdk8u${PV}-ga"
+ SRC_URI[corba.sha256sum] = "28c487a49546ab1a592eaf229c13e1896b390958ac4e6fa19bf5da34a1977138"
+ 
+diff --git a/recipes-core/openjdk/patches-openjdk-8/1009-hotspot-fix-adlc-flags.patch b/recipes-core/openjdk/patches-openjdk-8/1009-hotspot-fix-adlc-flags.patch
+index a68e3a0..ada0b38 100644
+--- a/recipes-core/openjdk/patches-openjdk-8/1009-hotspot-fix-adlc-flags.patch
++++ b/recipes-core/openjdk/patches-openjdk-8/1009-hotspot-fix-adlc-flags.patch
+@@ -1,7 +1,7 @@
+-From 486b1c46d80de99e0820cc6305477ab40ba4e13c Mon Sep 17 00:00:00 2001
+-From: =?UTF-8?q?Erkka=20K=C3=A4=C3=A4ri=C3=A4?= <erkka.kaaria@intel.com>
+-Date: Thu, 2 Jan 2020 10:19:29 +0100
+-Subject: [PATCH 1009/1013] hotspot: fix adlc flags
++From 96a2c462fdc0c1d3ddf2e59993ad5491d1331754 Mon Sep 17 00:00:00 2001
++From: Jon Nettleton <jon@solid-run.com>
++Date: Mon, 30 Aug 2021 13:45:42 +0200
++Subject: [PATCH] [PATCH 1009/1013] hotspot: fix adlc flags
+ MIME-Version: 1.0
+ Content-Type: text/plain; charset=UTF-8
+ Content-Transfer-Encoding: 8bit
+@@ -9,35 +9,43 @@ Content-Transfer-Encoding: 8bit
+ adlc is built using the native toolchain, not the crosscompiler. It however
+ was incorrectly using flags meant for the crosscompiler.
+ 
++*edit*
++Make was failing to remove all the flags, and really it is unnecessary. Just
++bring in the build flags and remove SYSDEFS which also had cross compile
++specifics in iit.
++
+ Upstream-Status: Inappropriate [Yocto-specific fixes]
+ 
+ Signed-off-by: Erkka Kääriä <erkka.kaaria@intel.com>
+ Signed-off-by: Richard Leitner <richard.leitner@skidata.com>
+ ---
+- make/linux/makefiles/adlc.make | 10 ++++++++++
+- 1 file changed, 10 insertions(+)
++ hotspot/make/linux/makefiles/adlc.make | 6 +++++-
++ 1 file changed, 5 insertions(+), 1 deletion(-)
+ 
+ diff --git a/hotspot/make/linux/makefiles/adlc.make b/hotspot/make/linux/makefiles/adlc.make
+-index 92b8b9b39..ae0aa0082 100644
++index 92b8b9b3..447d7c82 100644
+ --- a/hotspot/make/linux/makefiles/adlc.make
+ +++ b/hotspot/make/linux/makefiles/adlc.make
+-@@ -28,6 +28,16 @@
++@@ -28,6 +28,10 @@
+  
+  include $(GAMMADIR)/make/$(Platform_os_family)/makefiles/rules.make
+  
+-+# Yocto specific fix - remove target machine flags and replace them with
+-+# build machine flags, as this part is built using the native toolchain
+-+CXXFLAGS:=$(filter-out $(TARGET_CXXFLAGS),$(CXXFLAGS))
+-+CFLAGS:=$(filter-out $(TARGET_CFLAGS),$(CFLAGS))
+-+
+-+CXXFLAGS += $(BUILD_CXXFLAGS)
+-+CFLAGS += $(BUILD_CFLAGS)
+-+
+-+
+++# Yocto specific fix - only use build machine flags using hosttools
+++CXXFLAGS := $(BUILD_CXXFLAGS)
+++CFLAGS := $(BUILD_CFLAGS)
+ +
+  # #########################################################################
+  
+  # OUTDIR must be the same as AD_Dir = $(GENERATED)/adfiles in top.make:
++@@ -59,7 +63,7 @@ Src_Dirs_I += $(GAMMADIR)/src/share/vm/adlc $(GENERATED)
++ INCLUDES += $(Src_Dirs_I:%=-I%)
++
++ # set flags for adlc compilation
++-CXXFLAGS = $(SYSDEFS) $(INCLUDES)
+++CXXFLAGS = $(INCLUDES)
++
++ # Force assertions on.
++ CXXFLAGS += -DASSERT
+ -- 
+-2.26.2
++2.27.0
+ 
+-- 
+2.33.0
+

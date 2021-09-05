@@ -1,0 +1,101 @@
+From 702f3db17c667fc2e3a96c8851f9686f5dcde509 Mon Sep 17 00:00:00 2001
+From: Jon Nettleton <jon@solid-run.com>
+Date: Mon, 30 Aug 2021 14:34:59 +0200
+Subject: [PATCH 1/8] Resolve links back to original files and use that path
+
+The wrapper scripts call into various java binaries and compilers
+some of them may not be the same directory.  Instead resolve the
+symlink back to original file and then use that sysroot as the
+base java installation
+
+Signed-off-by: Jon Nettleton <jon@solid-run.com>
+---
+ recipes-core/ecj/ecj-bootstrap-native.bb                   | 2 +-
+ recipes-core/ecj/ecj-initial-native.bb                     | 2 +-
+ recipes-core/jamvm/files/java                              | 4 +++-
+ recipes-core/jamvm/files/java-initial                      | 7 ++++++-
+ .../jamvm/{jamvm-1.4.5 => jamvm-1.5.1}/jamvm-initial.patch | 0
+ .../jamvm/{jamvm-1.4.5 => jamvm-1.5.1}/libffi.patch        | 0
+ ...itial-native_1.4.5.bb => jamvm-initial-native_1.5.1.bb} | 0
+ 7 files changed, 11 insertions(+), 4 deletions(-)
+ rename recipes-core/jamvm/{jamvm-1.4.5 => jamvm-1.5.1}/jamvm-initial.patch (100%)
+ rename recipes-core/jamvm/{jamvm-1.4.5 => jamvm-1.5.1}/libffi.patch (100%)
+ rename recipes-core/jamvm/{jamvm-initial-native_1.4.5.bb => jamvm-initial-native_1.5.1.bb} (100%)
+
+diff --git a/recipes-core/ecj/ecj-bootstrap-native.bb b/recipes-core/ecj/ecj-bootstrap-native.bb
+index 874bd99..ee3e905 100644
+--- a/recipes-core/ecj/ecj-bootstrap-native.bb
++++ b/recipes-core/ecj/ecj-bootstrap-native.bb
+@@ -34,7 +34,7 @@ do_compile() {
+   echo "PARENT_DIR=\`dirname \${CURRENT_DIR}\`" >> ecj-bootstrap
+ 
+   echo "ECJ_JAR=\${PARENT_DIR}/share/java/${JAR}" >> ecj-bootstrap
+-  echo "RUNTIME=java" >> ecj-bootstrap
++  echo "RUNTIME=\${SH_DIR}/java" >> ecj-bootstrap
+   cat ecj.in >> ecj-bootstrap
+ }
+ 
+diff --git a/recipes-core/ecj/ecj-initial-native.bb b/recipes-core/ecj/ecj-initial-native.bb
+index d75b7a0..f7b84a2 100644
+--- a/recipes-core/ecj/ecj-initial-native.bb
++++ b/recipes-core/ecj/ecj-initial-native.bb
+@@ -28,7 +28,7 @@ do_compile() {
+   echo "PARENT_DIR=\`dirname \${CURRENT_DIR}\`" >> ecj-initial
+ 
+   echo "ECJ_JAR=\${PARENT_DIR}/share/java/${JAR}" >> ecj-initial
+-  echo "RUNTIME=java-initial" >> ecj-initial
++  echo "RUNTIME=\${SH_DIR}/java-initial" >> ecj-initial
+   cat ecj-initial.in >> ecj-initial
+ }
+ 
+diff --git a/recipes-core/jamvm/files/java b/recipes-core/jamvm/files/java
+index 6c96947..9aa0f23 100755
+--- a/recipes-core/jamvm/files/java
++++ b/recipes-core/jamvm/files/java
+@@ -1,5 +1,7 @@
+ #!/bin/sh
++SH_FILE=`readlink -f $0`
++SH_DIR=`dirname ${SH_FILE}`
+ 
+ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:STAGING_LIBDIR_NATIVE/classpath:STAGING_LIBDIR_NATIVE/jamvm"
+ export BOOTCLASSPATH="STAGING_DATADIR_NATIVE/jamvm/classes.zip:STAGING_DATADIR_NATIVE/classpath/glibj.zip"
+-exec jamvm "$@"
++exec ${SH_DIR}/jamvm "$@"
+diff --git a/recipes-core/jamvm/files/java-initial b/recipes-core/jamvm/files/java-initial
+index 1b27f81..79e5b15 100755
+--- a/recipes-core/jamvm/files/java-initial
++++ b/recipes-core/jamvm/files/java-initial
+@@ -1,12 +1,17 @@
+ #!/bin/sh
+ #
+ # Wrapper which (almost) silently restarts the VM in case of segfaults.
++SH_FILE=`readlink -f $0`
++SH_DIR=`dirname ${SH_FILE}`
++CURRENT_DIR=`cd ${SH_DIR} && pwd`
++PARENT_DIR=`dirname ${CURRENT_DIR}`
++BOOTCLASS=${PARENT_DIR}/share/jamvm-initial/classes.zip:${PARENT_DIR}/share/classpath-initial/glibj.zip
+ 
+ error_counter=0;
+ error_occured=139
+ while [ ${error_counter} -le 50 -a ${error_occured} -eq 139 ]; do
+     echo "Running JamVM-initial: ${@}"
+-    jamvm-initial ${1+"$@"}
++    ${SH_DIR}/jamvm-initial -Xbootclasspath:${BOOTCLASS} ${1+"$@"}
+     error_occured=$?
+     if [ ${error_occured} -eq 139 ]; then
+         echo "JamVM-initial crashed - silently trying again"
+diff --git a/recipes-core/jamvm/jamvm-1.4.5/jamvm-initial.patch b/recipes-core/jamvm/jamvm-1.5.1/jamvm-initial.patch
+similarity index 100%
+rename from recipes-core/jamvm/jamvm-1.4.5/jamvm-initial.patch
+rename to recipes-core/jamvm/jamvm-1.5.1/jamvm-initial.patch
+diff --git a/recipes-core/jamvm/jamvm-1.4.5/libffi.patch b/recipes-core/jamvm/jamvm-1.5.1/libffi.patch
+similarity index 100%
+rename from recipes-core/jamvm/jamvm-1.4.5/libffi.patch
+rename to recipes-core/jamvm/jamvm-1.5.1/libffi.patch
+diff --git a/recipes-core/jamvm/jamvm-initial-native_1.4.5.bb b/recipes-core/jamvm/jamvm-initial-native_1.5.1.bb
+similarity index 100%
+rename from recipes-core/jamvm/jamvm-initial-native_1.4.5.bb
+rename to recipes-core/jamvm/jamvm-initial-native_1.5.1.bb
+-- 
+2.33.0
+
