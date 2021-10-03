@@ -5,10 +5,10 @@ LIC_FILES_CHKSUM = " \
     file://../SolidSense-V1/LICENSE;md5=c7cc8aa73fb5717f8291fcec5ce9ed6c \
 "
 SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
+SRCREV_SolidSense-V1 = "16bec81ffa6e28becae3fe2c47c7c6acf627e96a"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 do_install () {
@@ -66,4 +66,4 @@ FILES_${PN} = " \
   /opt/SolidSense/common/solidsense_parameters.py \
 "
 
-COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl|in6gq|in6gsdl"
+COMPATIBLE_MACHINE = "solidsense|n6gq|n6gsdl|in6gq|in6gsdl|imx8mn"
