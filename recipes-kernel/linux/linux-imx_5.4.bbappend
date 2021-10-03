@@ -1,0 +1,41 @@
+FILESEXTRAPATHS_prepend := "linux-imx:"
+#PATCHTOOL = "git"
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/SolidRun/imx8mp_build/imx8mn/patches/linux-imx"
+SRC_URI += " \
+	${GITHUB_RAW_URL}/0001-Add-imx8mn-compact-kerenel-device-tree.patch;name=0001 \
+	${GITHUB_RAW_URL}/0002-Add-imx8mn-compacte-device-tree-to-the-Makfile.patch;name=0002 \
+	${GITHUB_RAW_URL}/0003-Edit-imx8mn-compact-dts-add-rtc-support.patch;name=0003 \
+	${GITHUB_RAW_URL}/0004-Edit-imx8mn-Compact-dts-Enable-the-WIFI.patch;name=0004 \
+	${GITHUB_RAW_URL}/0005-Edit-imx8mn-compact-dts-add-UART4-support.patch;name=0005 \
+	${GITHUB_RAW_URL}/0006-Add-mcp251xfd-driver-support.patch;name=0006 \
+	${GITHUB_RAW_URL}/0007-Edit-imx8mn-compact-dts-add-canBus-support.patch;name=0007 \
+	${GITHUB_RAW_URL}/0008-Imx8mn-enable-pull-resistor-field-in-devicetree-for-RGMII.patch;name=0008 \
+	${GITHUB_RAW_URL}/0009-Imx8mn-Add-I-O-Expander-support-in-devicetree.patch;name=0009 \
+	${GITHUB_RAW_URL}/0010-Edit-imx8mp-compact-dts-add-leds-support.patch;name=0010 \
+	${GITHUB_RAW_URL}/0011-Imx8mn-Add-I-O-expander-polling-support-in-devicetre.patch;name=0011 \
+	${GITHUB_RAW_URL}/0012-Imx8mn-Add-U-BLOX-reset-in-devicetree.patch;name=0012 \
+	${GITHUB_RAW_URL}/0013-Imx8mn-LTE.patch;name=0013 \
+	${GITHUB_RAW_URL}/0014-Imx8mn-Wifi-bug-fix.patch;name=0014 \
+	${GITHUB_RAW_URL}/0015-Imx8mn-Wifi-firmware-load-time.patch;name=0015 \
+	${GITHUB_RAW_URL}/0016-Imx8mn-RS485-fix-change-UART3-to-DTE-mode.patch;name=0016 \
+	${GITHUB_RAW_URL}/0017-Edit-pad-control-registers-of-the-WIFI-signals.patch;name=0017 \
+	file://0001-remove-ublox-reset.patch \
+"
+
+SRC_URI[0001.sha256sum] = "e6f5e4ee21febbec811f267fe1097340655657c1ae90f48aefa66f9bbe390574"
+SRC_URI[0002.sha256sum] = "3a64d18798c5fe069dd16194a7cc55ed0b9a1da07c9c9adf97f00beceab26156"
+SRC_URI[0003.sha256sum] = "eb9bfeb36a2e31e0da2fa20b32115c18c5ad5289cf458054b847108189b8aba9"
+SRC_URI[0004.sha256sum] = "bc485d574e83c7fe6bc1717a1ebebce601805815270774f76500197f50bd11fd"
+SRC_URI[0005.sha256sum] = "ea36e243962c0aceb6f32c233327ccb9bdd50f58086ae447b629762104872694"
+SRC_URI[0006.sha256sum] = "be46a146b4a4307ccec81aad9ba9c772796a71d26f77f69d7fcf9f32f24c904f"
+SRC_URI[0007.sha256sum] = "f0c3dac9b25d830362afaaeb6ee5c991bf6d9f0da32930674aa07730985866b0"
+SRC_URI[0008.sha256sum] = "d47061ff6da7d3910e3da4d1c054cff0b571194624f14695ec497c65725c03d9"
+SRC_URI[0009.sha256sum] = "4b13216f9d8107703c03d29a64e67883219137ff3af357f77f63eb2aa9f886a8"
+SRC_URI[0010.sha256sum] = "03a46ea76664eb09474d3e7478cdb727b52d918a037ac7f191e02eef9ccd8176"
+SRC_URI[0011.sha256sum] = "7d4ff6464f0e68be83c28433a44c97d4f3c50652baa4c1e0506ae9756675c8c1"
+SRC_URI[0012.sha256sum] = "147030237bf504784b17aecb40171fb6897a593c0769a3213bb5180acaeb9ff4"
+SRC_URI[0013.sha256sum] = "f2f232ec5686b8f1a8195cd16d841ee7fa2a4d8176ea1acf7c31d3aa2e9285e7"
+SRC_URI[0014.sha256sum] = "5813f8c8784654e36526a5c6fb947f76f04ff178a57e7a3a33e7df7fbb632ed1"
+SRC_URI[0015.sha256sum] = "99830c574c04bd7bf9b0588b064a7146a96b93b90d700befb9e146dd555b9a63"
+SRC_URI[0016.sha256sum] = "5775bd566d0a481034ee0321e4670809c2f9e169eedce806a6cb80ef946bca1d"
+SRC_URI[0017.sha256sum] = "cdb4570b20f5f0c4e264214c84367959ac0785edbebad367dfa56b12a51a9e24"

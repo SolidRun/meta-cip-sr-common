@@ -1,0 +1,42 @@
+From b0f7b5a6085866ae6073e388e46c659b927c85d3 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Wed, 29 Sep 2021 15:10:57 -0400
+Subject: [PATCH] remove ublox reset
+
+---
+ arch/arm64/boot/dts/freescale/imx8mn-compact.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mn-compact.dts b/arch/arm64/boot/dts/freescale/imx8mn-compact.dts
+index c818eb4b7b1e..3387f8526f1e 100755
+--- a/arch/arm64/boot/dts/freescale/imx8mn-compact.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mn-compact.dts
+@@ -25,6 +25,7 @@
+                 #reset-cells = <0>;
+         };
+ 	
++/*
+ 	ublox_reset: ublox-reset {
+                 compatible = "gpio-reset";
+                 reset-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+@@ -32,6 +33,7 @@
+                 reset-post-delay-ms = <40>;
+                 #reset-cells = <0>;
+ 	};
++*/
+ 
+ 	hub-reset {
+ 		compatible = "gpio-reset";
+@@ -698,7 +700,9 @@
+ 	assigned-clock-parents = <&clk IMX8MN_SYS_PLL1_80M>;
+ 	/delete-property/ dmas;
+         /delete-property/ dmas-names;
++/*
+ 	resets = <&ublox_reset>;
++*/
+         status = "okay";
+ };
+ 
+-- 
+2.20.1
+
