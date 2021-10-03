@@ -6,21 +6,24 @@ LIC_FILES_CHKSUM = "file://../LICENSE;md5=cb6bb17b0d0cca188339074207e9f4d8"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI = " \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
-    file://LICENSE \
+SRC_URI = "git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1 \
+           file://LICENSE \
+           "
+
+SRCREV = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
+S = "${WORKDIR}/SolidSense-V1"
+
+DEPENDS = " \
+    c-mesh-api \
 "
 
-SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
-S-V1 = "${WORKDIR}/SolidSense-V1"
-
 do_compile_prepend () {
-    cd ${S-V1}/wirepas/wirepas_firmware_check
+    cd ${S}/wirepas/wirepas_firmware_check
 }
 
 do_install () {
     install -d ${D}${base_bindir}
-    install -m 0755 ${S-V1}/wirepas/wirepas_firmware_check/wp-get-fw-version ${D}${base_bindir}/wp-get-fw-version
+    install -m 0755 ${S}/wirepas/wirepas_firmware_check/wp-get-fw-version ${D}${base_bindir}/wp-get-fw-version
     ln -s ${base_bindir}/wp-get-fw-version ${D}${base_bindir}/sink1-get-version
     ln -s ${base_bindir}/wp-get-fw-version ${D}${base_bindir}/sink2-get-version
 }
