@@ -1,0 +1,32 @@
+From 46a597e7f0d155bc2f76877e8afc0a7ddbb5f94d Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Mon, 6 Sep 2021 17:35:34 -0400
+Subject: [PATCH] comment out hardcoded values for CC/AS/LD/AR
+
+comment out hardcoded values for CC/AS/LD/AR to allow picking
+cross-compile values.
+
+Signed-off-by: Eric Bree <eric.bree@solid-run.com>
+---
+ makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/makefile b/makefile
+index 0eb90ad..bf71c87 100644
+--- a/makefile
++++ b/makefile
+@@ -1,10 +1,10 @@
+ # Makefile for Wirepas C Mesh API Lib
+ 
+ # Toolchain
+-CC  := gcc
+-AS  := as
+-LD  := ld
+-AR  := ar
++#CC  := gcc
++#AS  := as
++#LD  := ld
++#AR  := ar
+ 
+ # Paths, including trailing path separator
+ SOURCEPREFIX   := 
