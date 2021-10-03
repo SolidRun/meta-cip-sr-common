@@ -1,8 +1,11 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
 SRC_URI = " \
     git://repo.or.cz/openocd.git;protocol=http;name=openocd \
     git://repo.or.cz/r/git2cl.git;protocol=http;destsuffix=tools/git2cl;name=git2cl \
     git://repo.or.cz/r/jimtcl.git;protocol=http;destsuffix=git/jimtcl;name=jimtcl \
     git://repo.or.cz/r/libjaylink.git;protocol=http;destsuffix=git/src/jtag/drivers/libjaylink;name=libjaylink \
+    file://0004-Allow-imx-gpio-to-aarch-host-cpu.patch \
 "
 
 SRCREV_FORMAT = "openocd"
