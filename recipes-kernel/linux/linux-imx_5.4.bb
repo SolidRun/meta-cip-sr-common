@@ -30,4 +30,4 @@ LINUX_VERSION = "5.4.70"
 
 DEFAULT_PREFERENCE = "1"
 
-COMPATIBLE_MACHINE = "(mx6|mx7|mx8|imx8mn)"
+COMPATIBLE_MACHINE = "(mx6|mx7|mx8|imx8mnc)"
