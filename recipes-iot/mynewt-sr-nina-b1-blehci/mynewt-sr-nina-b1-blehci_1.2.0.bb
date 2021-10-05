@@ -9,17 +9,17 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
     file://LICENSE \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
+SRCREV_SolidSense-V1 = "16bec81ffa6e28becae3fe2c47c7c6acf627e96a"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 
 RDEPENDS_${PN} = " \
      bluez5 \
 "
 
-SYSTEMD_SERVICE_${PN} = "ble1.service ble2.service"
+SYSTEMD_SERVICE_${PN} = "ble2.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "disable"
 
 inherit systemd
@@ -33,16 +33,24 @@ do_install () {
 
     # install systemd service file
     install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${S-V1}/BLE/systemd/ble1.service ${D}${systemd_unitdir}/system
-    sed -i -e 's,@SBINDIR@,${sbindir},g' \
-        -e 's,@SYSCONFDIR@,${sysconfdir},g' \
-        ${D}${systemd_unitdir}/system/ble1.service
+    if [ -z "${@bb.utils.contains('MACHINE', 'imx8mnc', 'imx8mnc', '', d)}" ]; then
+        install -m 0644 ${S-V1}/BLE/systemd/ble1.service ${D}${systemd_unitdir}/system
+        sed -i -e 's,@SBINDIR@,${sbindir},g' \
+            -e 's,@SYSCONFDIR@,${sysconfdir},g' \
+            ${D}${systemd_unitdir}/system/ble1.service
+    fi
 
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${S-V1}/BLE/systemd/ble2.service ${D}${systemd_unitdir}/system
     sed -i -e 's,@SBINDIR@,${sbindir},g' \
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
         ${D}${systemd_unitdir}/system/ble2.service
+
+    # For imx8mnc, change the serial port for Sink1 from ttymcx1 to ttymxc3
+    if [ -n "${@bb.utils.contains('MACHINE', 'imx8mnc', 'imx8mnc', '', d)}" ]; then
+        sed -i -e 's,ttymxc1,ttymxc3,g' \
+            ${D}${systemd_unitdir}/system/ble2.service
+    fi
 }
 
 FILES_${PN} = " \
