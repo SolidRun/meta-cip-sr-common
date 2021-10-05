@@ -55,12 +55,6 @@ local_conf_header:
         -G dialout,sudo,audio,video,leds -d /data/solidsense solidsense; \
     "
 
-    #
-    # Install zimage, dtb and kernel modules
-    #
-    IMAGE_INSTALL_append += "kernel-devicetree kernel-image-zimage kernel-modules"
-    IMAGE_INSTALL_append += "firmware-wireless-wilink8 firmware-imx-sdma-imx6q"
-
     # Add additional packages
     IMAGE_INSTALL_append += "openssh mmc-utils solidsense-scripts sudo"
     IMAGE_INSTALL_append += "docker python3-docker-compose u-boot-fw-utils util-linux"
