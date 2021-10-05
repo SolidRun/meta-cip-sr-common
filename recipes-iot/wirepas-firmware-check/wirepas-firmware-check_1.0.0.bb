@@ -6,11 +6,12 @@ LIC_FILES_CHKSUM = "file://../LICENSE;md5=cb6bb17b0d0cca188339074207e9f4d8"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI = "git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1 \
-           file://LICENSE \
-           "
+SRC_URI = " \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    file://LICENSE \
+"
 
-SRCREV = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
+SRCREV_SolidSense-V1 = "16bec81ffa6e28becae3fe2c47c7c6acf627e96a"
 S = "${WORKDIR}/SolidSense-V1"
 
 DEPENDS = " \
