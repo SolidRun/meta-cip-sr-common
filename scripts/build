@@ -24,7 +24,7 @@ ARTIFACT_VERIFY_KEY="meta-cip-sr-common/mender-cert/artifact-verify-key.pem"
 # initialize configuration array
 declare -A config
 config=(
-	[devices]="n6gq n6gsdl solidsense"
+	[devices]="imx8mnc in6gq in6gsdl n6gq n6gsdl solidsense"
 	[product]=Solidsense
 	[release]=dev
 	[date]=$("${DATE}" "+%Y%m%d")
