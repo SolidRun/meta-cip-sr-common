@@ -9,12 +9,12 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     git://github.com/SolidRun/gateway;branch=solidsense-1.4;name=gateway \
     git://github.com/wirepas/c-mesh-api;destsuffix=git/sink_service/c-mesh-api;name=c-mesh-api \
-    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=V1.2.1;destsuffix=SolidSense-V1;name=SolidSense-V1 \
+    git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_gateway = "5c84dd7c0b4e1c1d87dfdd02c0a4c5ca92d012f0"
+SRCREV_gateway = "3de76a3837cc1ff33647d34ff348060743c3a687"
 SRCREV_c-mesh-api = "ce17a472988c5c1195db4d6427a546ed17c802da"
-SRCREV_SolidSense-V1 = "a4dbdecd3cf1d0ec2b31d5bd302dabca2e6ac706"
+SRCREV_SolidSense-V1 = "16bec81ffa6e28becae3fe2c47c7c6acf627e96a"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_VERSION ?= "5.0.0"
@@ -137,6 +137,11 @@ do_install () {
         -e 's,@SYSCONFDIR@,${sysconfdir},g' \
         ${D}${systemd_unitdir}/system/wirepasTransport2.service
 
+    # For imx8mnc, change the serial port for Sink1 from ttymcx1 to ttymxc3
+    if [ -n "${@bb.utils.contains('MACHINE', 'imx8mnc', 'imx8mnc', '', d)}" ]; then
+        sed -i -e 's,ttymxc1,ttymxc3,g' \
+            ${D}${systemd_unitdir}/system/wirepasSink1.service
+    fi
     # Install the sinkService
     install -d ${D}/opt/SolidSense/bin
     install -m 0755 ${S}/sink_service/build/sinkService ${D}/opt/SolidSense/bin/sinkService
@@ -178,6 +183,7 @@ FILES_${PN} = " \
   /usr/bin/wm-dbus-print \
   /usr/bin/read_sink \
   /usr/lib/python3.7/site-packages/dbusCExtension.cpython-37m-arm-linux-gnueabihf.so \
+  /usr/lib/python3.7/site-packages/dbusCExtension.cpython-37m-aarch64-linux-gnu.so \
   /usr/lib/python3.7/site-packages/wirepas_gateway \
   /usr/lib/python3.7/site-packages/wirepas_gateway-1.4.0-py3.7.egg-info \
   /usr/lib/python3.7/site-packages/wirepas_gateway/json_plugin.py \
