@@ -54,6 +54,7 @@ do_install () {
 }
 
 FILES_${PN} = " \
+    /lib/systemd/system/ble1.service \
     /opt/scripts/flash_ble \
     /opt/SolidSense/bin/flash_ble \
 "
