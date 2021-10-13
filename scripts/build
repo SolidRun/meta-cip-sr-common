@@ -20,6 +20,16 @@ CONFIG_FILE="meta-cip-sr-common/scripts/build.conf"
 KAS_DOCKER="meta-cip-sr-common/scripts/kas-docker"
 DOCKER_ENABLE=0
 ARTIFACT_VERIFY_KEY="meta-cip-sr-common/mender-cert/artifact-verify-key.pem"
+CLEANMETA=""
+CLEANMETALIST=" \
+	meta-debian \
+	meta-java \
+	meta-iot-cloud \
+	meta-mender \
+	meta-openembedded \
+	meta-readonly-rootfs-overlay \
+	meta-virtualization \
+"
 
 # initialize configuration array
 declare -A config
@@ -57,6 +67,7 @@ usage () {
 	echo "    -i|--iteration <iteration>                    :default is <${config[iteration]}>"
 	echo "    -v|--variant <variant>                        :default is no specific variant"
 	echo "    -c|--config <config>                          :default is <${CONFIG_FILE}>"
+	echo "    -C|--clean-meta                               :default is to not remove extra meta-* directories"
 	echo "    -h|--help"
 	echo ""
 	exit 1
@@ -360,9 +371,18 @@ do_deploy_sign_artifact () {
 	done
 }
 
+do_cleanmeta () {
+	printf "Removing the following extra layers...\\n    "
+	for meta in ${CLEANMETALIST} ; do
+		printf "%s " "${meta}"
+		rm -rf "${meta}"
+	done
+	printf "\\n"
+}
+
 # main
 
-options=$(getopt -l "help,hardware:,product:,release:,date:,docker,iteration:,variant:,config:" -o "hH:p:r:d:Di:v:c:" -- "${@}")
+options=$(getopt -l "help,hardware:,product:,release:,date:,docker,iteration:,variant:,config:,clean-meta" -o "hH:p:r:d:Di:v:c:C" -- "${@}")
 eval set -- "${options}"
 
 while true
@@ -406,6 +426,9 @@ do
 		-c|--config )
 			CONFIG_FILE="${1}"
 			;;
+		-C|--clean-meta )
+			CLEANMETA=1
+			;;
 		\? )
 			usage
 			;;
@@ -445,6 +468,9 @@ else
 		VERSION="${config[product]}-${VARIANT_VER}${config[release]}-${config[date]}${config[iteration]}"
 	else
 		VERSION="${config[product]}-${config[release]}-${config[date]}${config[iteration]}"
+	fi
+	if [ ${CLEANMETA} ]; then
+		do_cleanmeta
 	fi
 	do_build
 	do_deploy_images
