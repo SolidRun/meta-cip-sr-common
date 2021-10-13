@@ -48,16 +48,17 @@ partition_disk () {
 		echo "Unable to create valid label_id: ${label_id}"
 		exit 1
 	fi
+	part4_size="$(($(sfdisk -s /dev/mmcblk2) * 2 - 2048 - 3121152 * 2 - 131072))"
 	sfdisk --quiet --force "${ROOT_DEV}" << END
 label: dos
 label-id: ${label_id}
 device: ${ROOT_DEV}
 unit: sectors
 
-${ROOT_DEV}p1 : start=        2048, size=     3121152, type=83
-${ROOT_DEV}p2 : start=     3123200, size=     3121152, type=83
-${ROOT_DEV}p3 : start=     6244352, size=      131072, type=83
-${ROOT_DEV}p4 : start=     6375424, size=     8960000, type=83
+${ROOT_DEV}p1 : start=        2048, size=       3121152, type=83
+${ROOT_DEV}p2 : start=     3123200, size=       3121152, type=83
+${ROOT_DEV}p3 : start=     6244352, size=        131072, type=83
+${ROOT_DEV}p4 : start=     6375424, size= ${part4_size}, type=83
 END
 	ret="${?}"
 	if [ "${ret}" -ne 0 ]
