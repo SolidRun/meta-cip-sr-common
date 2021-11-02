@@ -15,16 +15,14 @@ FILE_WRITE_FIRMWARE="${DIR_NAME}/files/write-firmware"
 FILE_WRITE_U_BOOT="${DIR_NAME}/files/write-u-boot"
 UBOOT_IMAGE="u-boot-with-spl.imx"
 UBOOT_IMAGE_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${UBOOT_IMAGE}"
-WIC_IMAGE="core-image-full-cmdline-solidrun-imx6-20200119211133.rootfs.wic"
-WIC_IMAGE_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${WIC_IMAGE}"
 UBOOT_IMX6_SPL="spl-imx6-sdhc.bin"
-UBOOT_IMX6_SPL_URL="https://images.solid-build.xyz/IMX6/U-Boot/${UBOOT_IMX6_SPL}"
+UBOOT_IMX6_SPL_URL="https://images.solid-run.com/IMX6/U-Boot/${UBOOT_IMX6_SPL}"
 UBOOT_IMX6_IMG="u-boot-imx6-sdhc.img"
-UBOOT_IMX6_IMG_URL="https://images.solid-build.xyz/IMX6/U-Boot/${UBOOT_IMX6_IMG}"
-HARDWARE=" \
-	n6gq \
-	n6gsdl \
-"
+UBOOT_IMX6_IMG_URL="https://images.solid-run.com/IMX6/U-Boot/${UBOOT_IMX6_IMG}"
+UBOOT_IMAGE_IN6="u-boot-with-spl-in6g.imx"
+UBOOT_IMAGE_IN6_URL="https://images.solidsense.io/SolidSense/.create-usb-image/${UBOOT_IMAGE_IN6}"
+WIC_TYPE="n6gsdl"
+HARDWARE="n6gq n6gsdl"
 TYPE="n6g"
 MOUNT_DIR1="/mnt/rootfs1"
 MOUNT_DIR2="/mnt/rootfs2"
@@ -38,7 +36,7 @@ RED="\\e[31m"
 # functions
 usage () {
 	printf "%s <VERSION>\\n" "${PROG_NAME}"
-	printf "    -h|--hardware                        : hardware (in6g|n6gg)"
+	printf "    -h|--hardware                        : hardware (in6g|n6g)"
 	printf "\\n\\n"
 	printf "\\texample: %s Solidsense-V0.01-2019060600\\n" "${PROG_NAME}"
 	exit 1
@@ -69,24 +67,28 @@ calc_duration () {
 check_file () {
 	file="${1}"
 	if [ ! -f "${file}" ]; then
-		printf "file not found: ${RED}%s${NC}\\n" "${file}"
-		return 1
-	else
-		return 0
+		printf "file not found: ${RED}%s${NC}\\n" "${file}" 1>&2
+		echo 0
 	fi
 }
 
 check_files () {
 	UBOOT_IMAGE="${UBOOT_IMAGE}.${TYPE}"
 	UBOOT_IMAGE_URL="${UBOOT_IMAGE_URL}.${TYPE}"
-	failed=0
+	WIC_IMAGE="${VERSION}/${WIC_TYPE}-core-image-minimal-${VERSION_BASE}.wic"
+	failed=""
 	failed=$(check_file "${UBOOT_IMAGE}")
+	failed=$(check_file "${UBOOT_IMAGE_IN6}")
 	failed=$(check_file "${UBOOT_IMX6_SPL}")
 	failed=$(check_file "${UBOOT_IMX6_IMG}")
 	failed=$(check_file "${WIC_IMAGE}")
 	if [ ! -f "${UBOOT_IMAGE}" ]; then
 		echo "Downloading ${UBOOT_IMAGE} from ${UBOOT_IMAGE_URL}"
 		wget "${UBOOT_IMAGE_URL}" > /dev/null 2>&1
+	fi
+	if [ ! -f "${UBOOT_IMAGE_IN6}" ]; then
+		echo "Downloading ${UBOOT_IMAGE_IN6} from ${UBOOT_IMAGE_IN6_URL}"
+		wget "${UBOOT_IMAGE_IN6_URL}" > /dev/null 2>&1
 	fi
 	if [ ! -f "${UBOOT_IMX6_SPL}" ]; then
 		echo "Downloading ${UBOOT_IMX6_SPL} from ${UBOOT_IMX6_SPL_URL}"
@@ -95,10 +97,6 @@ check_files () {
 	if [ ! -f "${UBOOT_IMX6_IMG}" ]; then
 		echo "Downloading ${UBOOT_IMX6_IMG} from ${UBOOT_IMX6_IMG_URL}"
 		wget "${UBOOT_IMX6_IMG_URL}" > /dev/null 2>&1
-	fi
-	if [ ! -f "${WIC_IMAGE}" ]; then
-		echo "Downloading ${WIC_IMAGE} from ${WIC_IMAGE_URL}"
-		wget "${WIC_IMAGE_URL}" > /dev/null 2>&1
 	fi
 	for device in ${HARDWARE}; do
 		file="${VERSION}/${device}-core-image-minimal-${VERSION_BASE}.tar.gz"
@@ -126,7 +124,8 @@ label-id: ${label_id}
 device: ${OUTPUT_IMG}
 unit: sectors
 
-${OUTPUT_IMG} : start=        2048, size=     2095104, type=83
+${OUTPUT_IMG} : start=        2048, size=     2029568, type=83
+${OUTPUT_IMG} : start=     2031616, size=       65536, type=83
 END
 	ret="${?}"
 	if [ "${ret}" -ne 0 ]; then
@@ -139,10 +138,15 @@ END
 
 	# mkfs
 	sudo mkfs.ext4 -F -L "${VERSION_BASE}" /dev/mapper/loop0p1 >/dev/null 2>&1
+	sudo mkfs.ext4 -F -L "overlay" /dev/mapper/loop0p2 >/dev/null 2>&1
 
 	# write u-boot
-	dd if="${UBOOT_IMX6_SPL}" of="${OUTPUT_IMG}" bs=1k seek=1 conv=sync,notrunc,nocreat
-	dd if="${UBOOT_IMX6_IMG}" of="${OUTPUT_IMG}" bs=1k seek=69 conv=sync,notrunc,nocreat
+	if [ "${TYPE}" = "n6g" ]; then
+		dd if="${UBOOT_IMX6_SPL}" of="${OUTPUT_IMG}" bs=1k seek=1 conv=sync,notrunc,nocreat > /dev/null 2>&1
+		dd if="${UBOOT_IMX6_IMG}" of="${OUTPUT_IMG}" bs=1k seek=69 conv=sync,notrunc,nocreat > /dev/null 2>&1
+	else
+		dd if="${UBOOT_IMAGE_IN6}" of="${OUTPUT_IMG}" bs=1k seek=1 conv=sync,notrunc,nocreat > /dev/null 2>&1
+	fi
 
 	# mount filesystem
 	if [ ! -d "${MOUNT_DIR1}" ] ; then
@@ -163,6 +167,8 @@ mount_src_image () {
 }
 
 copy_files () {
+	fstab_tmp="$(mktemp /tmp/fstab.XXXXXX)"
+	flash_tmp="$(mktemp /tmp/flash.XXXXXX)"
 	# rsync over files from source wic image
 	sudo rsync -av --quiet "${MOUNT_DIR2}/" "${MOUNT_DIR1}"
 
@@ -185,8 +191,46 @@ copy_files () {
 	sudo cp "${FILE_WRITE_U_BOOT}" "${MOUNT_DIR1}/flash"
 	sudo cp "${FILE_WRITE_FIRMWARE}" "${MOUNT_DIR1}/flash"
 
-	# create symlink for startup
-	sudo ln -sf "../init.d/flash" "${MOUNT_DIR1}/etc/rc5.d/S99flash"
+	# copy over extlinux.conf
+	sudo mkdir -p "${MOUNT_DIR1}/boot/extlinux"
+	sudo cp "${VERSION}/extlinux.conf" "${MOUNT_DIR1}/boot/extlinux/extlinux.conf"
+
+	# update /etc/fstab
+	cat > "${fstab_tmp}" << EOF
+/dev/root		/		ext4		defaults					1 1
+proc			/proc		proc		defaults					0 0
+sysfs			/sys		sysfs		rw,nosuid,nodev,noexec,relatime			0 0
+devpts			/dev/pts	devpts		rw,nosuid,noexec,relatime,mode=0620,gid=5	0 0
+tmpfs			/run		tmpfs		mode=0755,nodev,nosuid,strictatime		0 0
+tmpfs			/var/volatile	tmpfs		defaults					0 0
+tmpfs			/dev/shm	tmpfs		defaults					0 0
+EOF
+	sudo cp "${fstab_tmp}" "${MOUNT_DIR1}/etc/fstab"
+	rm "${fstab_tmp}"
+
+	# create /etc/systemd/system/flash.service
+	cat > "${flash_tmp}" << EOF
+[Unit]
+Description=Flash the eMMC
+After=rngd.service systemd-user-sessions.service
+Before=getty.target serial-getty@ttymxc0.service
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/etc/init.d/flash
+TimeoutStartSec=450
+[Install]
+WantedBy=multi-user.target
+EOF
+	sudo cp "${flash_tmp}" "${MOUNT_DIR1}/etc/systemd/system/flash.service"
+	rm "${flash_tmp}"
+
+	# create softlink for service file
+	sudo ln -sf "../flash.service" "${MOUNT_DIR1}/etc/systemd/system/multi-user.target.wants/flash.service"
+
+	# copy over DTB files
+	sudo cp "${VERSION}"/*dtb "${MOUNT_DIR1}/boot"
 }
 
 update_extlinux_conf () {
@@ -226,11 +270,13 @@ do
                         ;;
                 -H|--hardware )
 			shift
-			type="${1}"
-			if [ "${type}" = "in6g" ] ; then
-				HARDWARE="in6gq in6sdl"
-			elif [ "${type}" = "n6g" ] ; then
-				HARDWARE="n6gq n6sdl"
+			TYPE="${1}"
+			if [ "${TYPE}" = "in6g" ] ; then
+				HARDWARE="in6gq in6gsdl"
+				WIC_TYPE="in6gsdl"
+			elif [ "${TYPE}" = "n6g" ] ; then
+				HARDWARE="n6gq n6gsdl"
+				WIC_TYPE="n6gsdl"
 			else
 				echo "Unknown hardware type"
 				exit 1
@@ -260,11 +306,12 @@ else
 	START="$(${DATE} +%s)"
 	VERSION="$(echo "${1}" | sed s'/\/$//')"
 	VERSION_BASE="$(basename "${1}")"
-	OUTPUT_IMG="${VERSION}.img"
+	OUTPUT_IMG="${VERSION}-${TYPE}.img"
 	if [ -f "${OUTPUT_IMG}" ]; then
-		echo "Output image: ${OUTPUT_IMG} exists."
-		exit 1
+		echo "Output image: ${OUTPUT_IMG} exists, removing."
+		rm "${OUTPUT_IMG}"
 	fi
+	echo "Starting to create image <${OUTPUT_IMG}>"
 	check_files
 	create_image_file
 	mount_src_image
