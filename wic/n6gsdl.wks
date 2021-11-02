@@ -1,0 +1,3 @@
+# short-description: Create SD card image for SolidSense N6G/IN6G
+# long-description: Create a partitioned SD card image for SolidSEnse N6G/IN6G
+part / --source rootfs --ondisk mmcblk0 --fstype=ext4 --label root --active --align 2048
