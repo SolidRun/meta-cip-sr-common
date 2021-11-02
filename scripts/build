@@ -6,9 +6,10 @@ DATE="$(command -vp date)"
 # Global variables
 PROG_NAME="$(basename "${0}")"
 HARDWARE_ALL=" \
+	in6gq \
+	in6gsdl \
 	n6gq \
 	n6gsdl \
-	solidsense \
 "
 IMAGE_SUFFIX=" \
 	manifest \
@@ -29,7 +30,10 @@ CLEANMETALIST=" \
 	meta-openembedded \
 	meta-readonly-rootfs-overlay \
 	meta-virtualization \
+	poky \
 "
+USBIMAGE=""
+USBIMAGE_RUN=""
 
 # initialize configuration array
 declare -A config
@@ -68,6 +72,8 @@ usage () {
 	echo "    -v|--variant <variant>                        :default is no specific variant"
 	echo "    -c|--config <config>                          :default is <${CONFIG_FILE}>"
 	echo "    -C|--clean-meta                               :default is to not remove extra meta-* directories"
+	echo "    -u|--usb-image                                :default is to not build bootable usb/sd images to flash eMMC"
+	echo "                                                   This option will enforce building of all images"
 	echo "    -h|--help"
 	echo ""
 	exit 1
@@ -193,6 +199,7 @@ do_build () {
 		duration="$(calc_duration "${START}" "${END}")"
 		if [ "${ret}" -eq "1" ] ; then
 			printf " ${YELLOW}(%s)${NC} Error!: (%s)\\n" "${duration}" "${ret}"
+			exit 1
 		else
 			printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
 		fi
@@ -282,16 +289,18 @@ do_deploy_images () {
 	printf "Copying over images for${LIGHT_RED}%s${NC}\\n"
 
 	# Copy over the licenses
-	START="$(${DATE} +%s)"
-	printf "    ${RED}%s${NC}" "licenses"
-	rsync -avz build/tmp/deploy/licenses "${dir_deploy}" > /dev/null 2>&1
-	CWD="$(pwd)"
-	cd "${dir_deploy}" || exit
-	zip -9 -r "${VERSION}-licenses.zip" "licenses" > /dev/null 2>&1
-	cd "${CWD}" || exit
-	END="$(${DATE} +%s)"
-	duration="$(calc_duration "${START}" "${END}")"
-	printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+	if [ -z ${USBIMAGE_RUN} ]; then
+		START="$(${DATE} +%s)"
+		printf "    ${RED}%s${NC}" "licenses"
+		rsync -avz build/tmp/deploy/licenses "${dir_deploy}" > /dev/null 2>&1
+		CWD="$(pwd)"
+		cd "${dir_deploy}" || exit
+		zip -9 -r "${VERSION}-licenses.zip" "licenses" > /dev/null 2>&1
+		cd "${CWD}" || exit
+		END="$(${DATE} +%s)"
+		duration="$(calc_duration "${START}" "${END}")"
+		printf " ${YELLOW}(%s)${NC}\\n" "${duration}"
+	fi
 
 	for device in ${config[devices]}; do
 		image_prefix_src="build/tmp/deploy/images/${device}/core-image-minimal-${device}"
@@ -308,10 +317,34 @@ do_deploy_images () {
 			if [ -f "${image_prefix_src}.${suffix}" ]; then
 				cp "${image_prefix_src}.${suffix}" "${image_prefix_dst}.${suffix}"
 			else
-				printf "\\n\\n${RED}Error: ${NC} %s not found!" "${image_prefix_src}.${suffix}"
+				printf "\\n\\n${RED}Error: ${NC} <%s> not found!\\n" "${image_prefix_src}.${suffix}"
 				exit 1
 			fi
 		done
+
+		# Copy over DTB files
+		if [ -z "${USBIMAGE_RUN}" ] ; then
+			files="$(find build/tmp/deploy/images/"${device}" -iname \*git\*dtb -print | sed 's/--.*dtb/.dtb/')"
+			for file in ${files} ; do
+				if [ -f "${file}" ]; then
+					cp "${file}" "${dir_deploy}/$(basename "${file}")"
+				else
+					printf "\\n\\n${RED}Error: ${NC} <%s> not found!\\n" "${file}"
+					exit 1
+				fi
+			done
+		fi
+
+		if [ -n "${USBIMAGE_RUN}" ]; then
+			src="build/tmp/deploy/images/${device}/extlinux.conf"
+			dst="${dir_deploy}/extlinux.conf"
+			if [ -f "${src}" ]; then
+				cp "${src}" "${dst}"
+			else
+				printf "\\n\\n${RED}Error: ${NC} <%s> not found!\\n" "${src}"
+				exit 1
+			fi
+		fi
 
 		# Update manifest file
 		do_update_manifest "${image_prefix_src}.manifest" "${dir_deploy}/licenses" > "${image_prefix_dst}.manifest.lic"
@@ -380,9 +413,26 @@ do_cleanmeta () {
 	printf "\\n"
 }
 
+do_create_usb_image () {
+	printf "Creating USB Image.\\n"
+	cd deploy || exit
+	../meta-cip-sr-common/scripts/create-usb-image --hardware n6g "${VERSION}"
+	printf "Compressing %s.\\n" "<${VERSION}-n6g.img>"
+	if [ -f "${VERSION}-n6g.img.xz" ] ; then
+		rm "${VERSION}-n6g.img"
+	fi
+	xz -9 --extreme --threads=0 --keep "${VERSION}-n6g.img"
+	../meta-cip-sr-common/scripts/create-usb-image --hardware in6g "${VERSION}"
+	printf "Compressing %s.\\n" "<${VERSION}-in6g.img>"
+	if [ -f "${VERSION}-in6g.img.xz" ] ; then
+		rm "${VERSION}-in6g.img"
+	fi
+	xz -9 --extreme --threads=0 --keep "${VERSION}-in6g.img"
+}
+
 # main
 
-options=$(getopt -l "help,hardware:,product:,release:,date:,docker,iteration:,variant:,config:,clean-meta" -o "hH:p:r:d:Di:v:c:C" -- "${@}")
+options=$(getopt -l "help,hardware:,product:,release:,date:,docker,iteration:,variant:,config:,clean-meta,usb-image" -o "hH:p:r:d:Di:v:c:Cu" -- "${@}")
 eval set -- "${options}"
 
 while true
@@ -428,6 +478,10 @@ do
 			;;
 		-C|--clean-meta )
 			CLEANMETA=1
+			;;
+		-u|--usb-image )
+			DEVICES="${HARDWARE_ALL}"
+			USBIMAGE=1
 			;;
 		\? )
 			usage
@@ -475,6 +529,16 @@ else
 	do_build
 	do_deploy_images
 	do_deploy_sign_artifact
+	if [ ${USBIMAGE} ] ; then
+		printf "\\nBuilding the WIC for the USB Images.\\n"
+		config[devices]="in6gsdl n6gsdl"
+		VARIANT="usb-image"
+		IMAGE_SUFFIX="wic"
+		USBIMAGE_RUN=1
+		do_build
+		do_deploy_images
+		do_create_usb_image
+	fi
 	FULL_END="$(${DATE} +%s)"
 	duration="$(calc_duration "${FULL_START}" "${FULL_END}")"
 	printf "\\nThat entire run took ${BOLD}${UNDERLINED}%s${NC}.\\n\\n" "${duration}"
