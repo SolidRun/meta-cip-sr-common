@@ -42,7 +42,7 @@ partition_disk () {
 	sleep 1
 
 	# Partition the disk
-	label_id=$(tr -dc 'a-h0-9' < /dev/urandom | fold -w 8 | head -n 1)
+	label_id="$(dd if=/dev/urandom bs=32 count=32 status=none | tr -dc 'a-h0-9' | fold -w 8 | head -n 1)"
 	if [ "$(wc -c "${label_id}")" -ne 9 ]
 	then
 		echo "Unable to create valid label_id: ${label_id}"
@@ -119,9 +119,9 @@ write_rootfs () {
 	mount -t ext4 "${ROOT_DEV}p4" /mnt/rootfs1/data
 	handle_ret "mount" "${ROOT_DEV}p4" "${?}"
 
-	tar -xvf "${firmware}" -C /mnt/rootfs1/
+	tar -xvzf "${firmware}" -C /mnt/rootfs1/
 	handle_ret "tar" "${firmware}" "${?}"
-	tar -xvf "${firmware}" -C /mnt/rootfs2/
+	tar -xvzf "${firmware}" -C /mnt/rootfs2/
 	handle_ret "tar" "${firmware}" "${?}"
 	# Remove extraneous data in /data
 	rm -rf /mnt/rootfs2/data
