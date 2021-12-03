@@ -1,0 +1,623 @@
+From ca0d1519810d3940934fc66178f6035125757d0a Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Fri, 26 Nov 2021 10:10:17 -0500
+Subject: [PATCH] add openjdk-11
+
+---
+ recipes-core/openjdk/openjdk-11-common.inc    | 160 ++++++++++++++++++
+ recipes-core/openjdk/openjdk-11-release.inc   |   9 +
+ recipes-core/openjdk/openjdk-11_11.0.12.bb    |   9 +
+ ...oconf-remove-hard-dependency-on-cups.patch | 153 +++++++++++++++++
+ ...olchain-remove-invalid-compiler-chec.patch |  45 +++++
+ ..._libsctp_link_errors_caused_by_GCC10.patch |  64 +++++++
+ ...le_definition_link_errors_with_GCC10.patch |  49 ++++++
+ ...le_definition_link_errors_with_GCC10.patch |  48 ++++++
+ .../images/openjdk-11-test-image.bb           |   3 +
+ 9 files changed, 540 insertions(+)
+ create mode 100644 recipes-core/openjdk/openjdk-11-common.inc
+ create mode 100644 recipes-core/openjdk/openjdk-11-release.inc
+ create mode 100644 recipes-core/openjdk/openjdk-11_11.0.12.bb
+ create mode 100644 recipes-core/openjdk/patches-openjdk-11/0001-make-autoconf-remove-hard-dependency-on-cups.patch
+ create mode 100644 recipes-core/openjdk/patches-openjdk-11/0002-make-autoconf-toolchain-remove-invalid-compiler-chec.patch
+ create mode 100644 recipes-core/openjdk/patches-openjdk-11/fixed_libsctp_link_errors_caused_by_GCC10.patch
+ create mode 100644 recipes-core/openjdk/patches-openjdk-11/libj2gss_NativeFunc_multiple_definition_link_errors_with_GCC10.patch
+ create mode 100644 recipes-core/openjdk/patches-openjdk-11/libjava_childproc_multiple_definition_link_errors_with_GCC10.patch
+ create mode 100644 recipes-images/images/openjdk-11-test-image.bb
+
+diff --git a/recipes-core/openjdk/openjdk-11-common.inc b/recipes-core/openjdk/openjdk-11-common.inc
+new file mode 100644
+index 0000000..4af38be
+--- /dev/null
++++ b/recipes-core/openjdk/openjdk-11-common.inc
+@@ -0,0 +1,160 @@
++# Copyright (C) 2021 Eric Bree <eric.bree@solid-run.com>
++# Released under the MIT license (see COPYING.MIT for the terms)
++
++SUMMARY = "Java runtime based upon the OpenJDK Project"
++HOMEPAGE = "http://openjdk.java.net/"
++LICENSE  = "GPL-2.0-with-classpath-exception"
++
++LIC_FILES_CHKSUM = "file://LICENSE;md5=3e0b59f8fac05c3c03d4a26bbda13f8f"
++
++DEPENDS = "\
++    alsa-lib \
++    bash \
++    fontconfig \
++    libxcb \
++    libxext \
++    libx11 \
++    libxrender \
++    libxrandr \
++    libxt \
++    libxtst \
++    zip \
++    "
++
++DEPENDS_append_class-target = "\
++    openjdk-11-native \
++    "
++
++SRC_URI = "\
++    https://hg.openjdk.java.net/jdk-updates/jdk11u/archive/jdk-${PV}-ga.tar.bz2;name=jdk \
++    file://0001-make-autoconf-remove-hard-dependency-on-cups.patch \
++    "
++
++S = "${WORKDIR}/jdk11u-jdk-${PV}-ga"
++
++require openjdk-common.inc
++
++JAVA_HOME = "${libdir_jvm}/${PN}"
++
++AUTOTOOLS_SCRIPT_PATH = "${S}/make/autoconf"
++
++EXTRA_OECONF_append = "\
++    --with-jobs=${@openjdk_build_helper_get_parallel_make(d)} \
++    --with-tools-dir="${STAGING_DIR_NATIVE}" \
++    --with-extra-cflags="${CFLAGS}" \
++    --with-extra-cxxflags="${CXXFLAGS}" \
++    --with-extra-ldflags="${LDFLAGS}" \
++    --with-vendor-name="meta-java" \
++    --enable-headless-only \
++    --disable-manpages \
++    --disable-warnings-as-errors \
++    --without-cups \
++    --disable-manpages \
++    --disable-warnings-as-errors \
++"
++
++#CONFIGUREOPTS_remove_class-native = "--host=${HOST_SYS}"
++#CONFIGUREOPTS_remove_class-native = "--target=${TARGET_SYS}"
++
++EXTRA_OECONF_append_class-native = "\
++    --with-boot-jdk=/usr/lib/jvm/java-11-openjdk-amd64 \
++    --enable-headless-only \
++    --enable-openjdk-only \
++"
++
++EXTRA_OECONF_append_class-target = "\
++    --with-sysroot="${STAGING_DIR_HOST}" \
++    --with-boot-jdk="${STAGING_LIBDIR_NATIVE}/jvm/openjdk-11-native" \
++    --with-extra-cflags="${CFLAGS} ${TUNE_CCARGS}" \
++    --with-extra-cxxflags="${CXXFLAGS} ${TUNE_CCARGS}" \
++"
++
++do_patch_append() {
++    bb.build.exec_func("do_fix_configure", d)
++}
++
++do_fix_configure() {
++    chmod a+x ${S}/configure
++}
++
++do_configure_prepend () {
++    export TOPDIR=${S}
++#   export CXXFILT="c++filt"
++}
++
++do_configure_prepend_class-native () {
++    unset CC CXX CPP CXXCPP CFLAGS CXXFLAGS LDFLAGS
++    export CXXFILT="c++filt"
++}
++
++do_configure_prepend_class-target () {
++    unset CC CXX CPP CXXCPP CFLAGS CXXFLAGS LDFLAGS
++    export PATH=${STAGING_DIR_NATIVE}/usr/bin/arm-deby-linux-gnueabi:${PATH}
++    export CPP="${TARGET_SYS}-cpp ${TUNE_CCARGS}"
++    export CXXCPP="${TARGET_SYS}-cpp ${TUNE_CCARGS}"
++}
++
++EXTRA_OEMAKE_append = "\
++    STRIP_POLICY=no_strip \
++    QUIETLY= \
++    jdk-image \
++    legacy-jre-image \
++"
++
++do_install() {
++    rm -rf ${D}${JAVA_HOME}
++    mkdir -p ${D}${JAVA_HOME}
++    if [[ "${PN}" = openjre* ]]; then
++        cp -rp ${B}/images/jre/* ${D}${JAVA_HOME}
++    else
++        cp -rp ${B}/images/jdk/* ${D}${JAVA_HOME}
++    fi
++    chown -R root:root ${D}${JAVA_HOME}
++    #install -m644 ${WORKDIR}/jvm.cfg  ${D}${JAVA_HOME}/jre/lib/${JDK_ARCH}/
++    find ${D}${JAVA_HOME} -name "*.debuginfo" -exec rm {} \;
++}
++
++PACKAGES_append = " \
++    ${PN}-demo \
++    ${PN}-jmods \
++"
++
++FILES_${PN}-demo = " ${JAVA_HOME}/demo ${JAVA_HOME}/sample "
++FILES_${PN}-jmods = " ${JAVA_HOME}/jmods "
++
++FILES_${PN}_append = "\
++    ${JAVA_HOME}/bin/[a-z]* \
++    ${JAVA_HOME}/lib/[a-z]* \
++    ${JAVA_HOME}/jre/bin/[a-z]* \
++    ${JAVA_HOME}/jre/lib/[a-z]* \
++    ${JAVA_HOME}/LICENSE \
++    ${JAVA_HOME}/jre/LICENSE \
++    ${JAVA_HOME}/release \
++    ${JAVA_HOME}/conf \
++"
++
++FILES_${PN}-dev_append = "\
++    ${JAVA_HOME}/include \
++"
++
++FILES_${PN}-doc_append = "\
++    ${JAVA_HOME}/man \
++    ${JAVA_HOME}/ASSEMBLY_EXCEPTION \
++    ${JAVA_HOME}/THIRD_PARTY_README \
++    ${JAVA_HOME}/jre/ASSEMBLY_EXCEPTION \
++    ${JAVA_HOME}/jre/THIRD_PARTY_README \
++    ${JAVA_HOME}/legal \
++"
++
++inherit update-alternatives
++
++ALTERNATIVE_PRIORITY = "100"
++
++ALTERNATIVE_openjdk-11 = "java javac keytool"
++ALTERNATIVE_openjre-11 = "java"
++ALTERNATIVE_LINK_NAME[java] = "${bindir}/java"
++ALTERNATIVE_TARGET[java] = "${JAVA_HOME}/bin/java"
++ALTERNATIVE_LINK_NAME[javac] = "${bindir}/javac"
++ALTERNATIVE_TARGET[javac] = "${JAVA_HOME}/bin/javac"
++ALTERNATIVE_LINK_NAME[keytool] = "${bindir}/keytool"
++ALTERNATIVE_TARGET[keytool] = "${JAVA_HOME}/bin/keytool"
+diff --git a/recipes-core/openjdk/openjdk-11-release.inc b/recipes-core/openjdk/openjdk-11-release.inc
+new file mode 100644
+index 0000000..0fae5a5
+--- /dev/null
++++ b/recipes-core/openjdk/openjdk-11-release.inc
+@@ -0,0 +1,9 @@
++# Copyright (C) 2020 Richard Leitner <richard.leitner@skidata.com>
++# Released under the MIT license (see COPYING.MIT for the terms)
++
++SRC_URI[jdk.sha256sum] = "c0d9129adefc033f62cdf57730ab10d38b3f238d7f72e09be89944e58c0e7d1c"
++
++FILESPATH =. "${FILE_DIRNAME}/patches-openjdk-11:"
++
++SRC_URI_append = "\
++"
+diff --git a/recipes-core/openjdk/openjdk-11_11.0.12.bb b/recipes-core/openjdk/openjdk-11_11.0.12.bb
+new file mode 100644
+index 0000000..f8b3869
+--- /dev/null
++++ b/recipes-core/openjdk/openjdk-11_11.0.12.bb
+@@ -0,0 +1,9 @@
++# Copyright (C) 2021 Eric Bree <eric.bree@solid-run.com>
++# Released under the MIT license (see COPYING.MIT for the terms)
++
++require openjdk-11-common.inc
++require openjdk-11-release.inc
++
++RPROVIDES_${PN} = "java2-runtime"
++
++BBCLASSEXTEND = "native nativesdk"
+diff --git a/recipes-core/openjdk/patches-openjdk-11/0001-make-autoconf-remove-hard-dependency-on-cups.patch b/recipes-core/openjdk/patches-openjdk-11/0001-make-autoconf-remove-hard-dependency-on-cups.patch
+new file mode 100644
+index 0000000..e0835ac
+--- /dev/null
++++ b/recipes-core/openjdk/patches-openjdk-11/0001-make-autoconf-remove-hard-dependency-on-cups.patch
+@@ -0,0 +1,153 @@
++From 3f77089a24c5073c59321d0ac5fdfe5057d8c06b Mon Sep 17 00:00:00 2001
++From: Richard Leitner <richard.leitner@skidata.com>
++Date: Wed, 13 May 2020 13:34:33 +0200
++Subject: [PATCH 1/2] make: autoconf: remove hard dependency on cups
++
++In our native build we don't want to have a dependency on cups,
++therefore enable --without-cups for all platforms.
++
++Upstream-Status: Inappropriate [disable feature]
++Signed-off-by: Richard Leitner <richard.leitner@skidata.com>
++---
++ make/autoconf/lib-cups.m4   | 30 ++++++++++++------------------
++ make/autoconf/libraries.m4  |  8 --------
++ make/autoconf/spec.gmk.in   |  1 +
++ make/lib/Awt2dLibraries.gmk | 13 ++++++++++++-
++ 4 files changed, 25 insertions(+), 27 deletions(-)
++
++diff --git a/make/autoconf/lib-cups.m4 b/make/autoconf/lib-cups.m4
++index 0a7df8b38..e8b6a683a 100644
++--- a/make/autoconf/lib-cups.m4
+++++ b/make/autoconf/lib-cups.m4
++@@ -34,25 +34,18 @@ AC_DEFUN_ONCE([LIB_SETUP_CUPS],
++   AC_ARG_WITH(cups-include, [AS_HELP_STRING([--with-cups-include],
++       [specify directory for the cups include files])])
++ 
++-  if test "x$NEEDS_LIB_CUPS" = xfalse; then
++-    if (test "x${with_cups}" != x && test "x${with_cups}" != xno) || \
++-        (test "x${with_cups_include}" != x && test "x${with_cups_include}" != xno); then
++-      AC_MSG_WARN([[cups not used, so --with-cups[-*] is ignored]])
++-    fi
+++
+++  WITH_CUPS="false"
+++  if test "x${with_cups}" = xno || test "x${with_cups_include}" = xno; then
+++    AC_MSG_WARN([Disable the use of cups.])
++     CUPS_CFLAGS=
++   else
++-    CUPS_FOUND=no
++-
++-    if test "x${with_cups}" = xno || test "x${with_cups_include}" = xno; then
++-      AC_MSG_ERROR([It is not possible to disable the use of cups. Remove the --without-cups option.])
++-    fi
++-
++     if test "x${with_cups}" != x; then
++       AC_MSG_CHECKING([for cups headers])
++       if test -s "${with_cups}/include/cups/cups.h"; then
++         CUPS_CFLAGS="-I${with_cups}/include"
++-        CUPS_FOUND=yes
++-        AC_MSG_RESULT([$CUPS_FOUND])
+++        WITH_CUPS="true"
+++        AC_MSG_RESULT([$WITH_CUPS])
++       else
++         AC_MSG_ERROR([Can't find 'include/cups/cups.h' under ${with_cups} given with the --with-cups option.])
++       fi
++@@ -61,25 +54,26 @@ AC_DEFUN_ONCE([LIB_SETUP_CUPS],
++       AC_MSG_CHECKING([for cups headers])
++       if test -s "${with_cups_include}/cups/cups.h"; then
++         CUPS_CFLAGS="-I${with_cups_include}"
++-        CUPS_FOUND=yes
++-        AC_MSG_RESULT([$CUPS_FOUND])
+++        WITH_CUPS="true"
+++        AC_MSG_RESULT([$WITH_CUPS])
++       else
++         AC_MSG_ERROR([Can't find 'cups/cups.h' under ${with_cups_include} given with the --with-cups-include option.])
++       fi
++     fi
++-    if test "x$CUPS_FOUND" = xno; then
+++    if test "x$WITH_CUPS" = "xfalse"; then
++       # Are the cups headers installed in the default /usr/include location?
++       AC_CHECK_HEADERS([cups/cups.h cups/ppd.h], [
++-          CUPS_FOUND=yes
+++          WITH_CUPS="true"
++           CUPS_CFLAGS=
++           DEFAULT_CUPS=yes
++       ])
++     fi
++-    if test "x$CUPS_FOUND" = xno; then
+++    if test "x$WITH_CUPS" = "xfalse"; then
++       HELP_MSG_MISSING_DEPENDENCY([cups])
++       AC_MSG_ERROR([Could not find cups! $HELP_MSG ])
++     fi
++   fi
++ 
++   AC_SUBST(CUPS_CFLAGS)
+++  AC_SUBST(WITH_CUPS)
++ ])
++diff --git a/make/autoconf/libraries.m4 b/make/autoconf/libraries.m4
++index a73c0f381..c8fc41fc8 100644
++--- a/make/autoconf/libraries.m4
+++++ b/make/autoconf/libraries.m4
++@@ -59,14 +59,6 @@ AC_DEFUN_ONCE([LIB_DETERMINE_DEPENDENCIES],
++     NEEDS_LIB_FONTCONFIG=true
++   fi
++ 
++-  # Check if cups is needed
++-  if test "x$OPENJDK_TARGET_OS" = xwindows; then
++-    # Windows have a separate print system
++-    NEEDS_LIB_CUPS=false
++-  else
++-    NEEDS_LIB_CUPS=true
++-  fi
++-
++   # A custom hook may have set this already
++   if test "x$NEEDS_LIB_FREETYPE" = "x"; then
++     NEEDS_LIB_FREETYPE=true
++diff --git a/make/autoconf/spec.gmk.in b/make/autoconf/spec.gmk.in
++index 39b4439cb..5cebc95c5 100644
++--- a/make/autoconf/spec.gmk.in
+++++ b/make/autoconf/spec.gmk.in
++@@ -357,6 +357,7 @@ FREETYPE_LIBS:=@FREETYPE_LIBS@
++ FREETYPE_CFLAGS:=@FREETYPE_CFLAGS@
++ FONTCONFIG_CFLAGS:=@FONTCONFIG_CFLAGS@
++ CUPS_CFLAGS:=@CUPS_CFLAGS@
+++WITH_CUPS := @WITH_CUPS@
++ ALSA_LIBS:=@ALSA_LIBS@
++ ALSA_CFLAGS:=@ALSA_CFLAGS@
++ LIBFFI_LIBS:=@LIBFFI_LIBS@
++diff --git a/make/lib/Awt2dLibraries.gmk b/make/lib/Awt2dLibraries.gmk
++index 1ec0c7615..d21e08d3b 100644
++--- a/make/lib/Awt2dLibraries.gmk
+++++ b/make/lib/Awt2dLibraries.gmk
++@@ -140,7 +140,11 @@ ifeq ($(OPENJDK_TARGET_OS), windows)
++ endif
++ 
++ ifneq ($(filter $(OPENJDK_TARGET_OS), solaris linux macosx aix), )
++-  LIBAWT_EXFILES += awt_Font.c CUPSfuncs.c fontpath.c X11Color.c
+++  LIBAWT_EXFILES += awt_Font.c fontpath.c X11Color.c
+++endif
+++
+++ifeq ($(WITH_CUPS), false)
+++  LIBAWT_EXFILES += CUPSfuncs.c
++ endif
++ 
++ ifeq ($(OPENJDK_TARGET_OS), macosx)
++@@ -467,10 +471,17 @@ ifeq ($(findstring $(OPENJDK_TARGET_OS), windows macosx),)
++   LIBAWT_HEADLESS_CFLAGS := $(CUPS_CFLAGS) $(FONTCONFIG_CFLAGS) $(X_CFLAGS) \
++       -DHEADLESS=true -DPACKAGE_PATH=\"$(PACKAGE_PATH)\"
++ 
+++
+++  LIBAWT_HEADLESS_EXFILES :=
+++  ifeq ($(WITH_CUPS), false)
+++    LIBAWT_HEADLESS_EXFILES += CUPSfuncs.c
+++  endif
+++
++   $(eval $(call SetupJdkLibrary, BUILD_LIBAWT_HEADLESS, \
++       NAME := awt_headless, \
++       EXTRA_SRC := $(LIBAWT_HEADLESS_EXTRA_SRC), \
++       EXCLUDES := $(LIBAWT_HEADLESS_EXCLUDES), \
+++      EXCLUDE_FILES := $(LIBAWT_HEADLESS_EXFILES), \
++       OPTIMIZATION := LOW, \
++       CFLAGS := $(CFLAGS_JDKLIB) \
++           $(LIBAWT_HEADLESS_CFLAGS), \
++-- 
++2.33.1
+diff --git a/recipes-core/openjdk/patches-openjdk-11/0002-make-autoconf-toolchain-remove-invalid-compiler-chec.patch b/recipes-core/openjdk/patches-openjdk-11/0002-make-autoconf-toolchain-remove-invalid-compiler-chec.patch
+new file mode 100644
+index 0000000..9997e70
+--- /dev/null
++++ b/recipes-core/openjdk/patches-openjdk-11/0002-make-autoconf-toolchain-remove-invalid-compiler-chec.patch
+@@ -0,0 +1,45 @@
++From 93a94cd79b5657bc7954a23d6d3f9eda0addf773 Mon Sep 17 00:00:00 2001
++From: Richard Leitner <richard.leitner@skidata.com>
++Date: Wed, 13 May 2020 13:41:49 +0200
++Subject: [PATCH 2/2] make: autoconf: toolchain: remove invalid compiler
++ checking
++
++The checking of CC and CXX was faulty as it doesn't supported
++program arguments.
++To make things work remove the check and trust it is valid.
++
++Upstream-Status: Inappropriate [configuration]
++Signed-off-by: Richard Leitner <richard.leitner@skidata.com>
++---
++ make/autoconf/toolchain.m4 | 15 ---------------
++ 1 file changed, 15 deletions(-)
++
++diff --git a/make/autoconf/toolchain.m4 b/make/autoconf/toolchain.m4
++index 341b2d1786..24f9f03948 100644
++--- a/make/autoconf/toolchain.m4
+++++ b/make/autoconf/toolchain.m4
++@@ -526,21 +526,6 @@ AC_DEFUN([TOOLCHAIN_FIND_COMPILER],
++   if test "x[$]$1" != x; then
++     # User has supplied compiler name already, always let that override.
++     AC_MSG_NOTICE([Will use user supplied compiler $1=[$]$1])
++-    if test "x`basename [$]$1`" = "x[$]$1"; then
++-      # A command without a complete path is provided, search $PATH.
++-
++-      AC_PATH_PROGS(POTENTIAL_$1, [$]$1)
++-      if test "x$POTENTIAL_$1" != x; then
++-        $1=$POTENTIAL_$1
++-      else
++-        AC_MSG_ERROR([User supplied compiler $1=[$]$1 could not be found])
++-      fi
++-    else
++-      # Otherwise it might already be a complete path
++-      if test ! -x "[$]$1"; then
++-        AC_MSG_ERROR([User supplied compiler $1=[$]$1 does not exist])
++-      fi
++-    fi
++   else
++     # No user supplied value. Locate compiler ourselves.
++ 
++-- 
++2.26.2
++
+diff --git a/recipes-core/openjdk/patches-openjdk-11/fixed_libsctp_link_errors_caused_by_GCC10.patch b/recipes-core/openjdk/patches-openjdk-11/fixed_libsctp_link_errors_caused_by_GCC10.patch
+new file mode 100644
+index 0000000..8111fa7
+--- /dev/null
++++ b/recipes-core/openjdk/patches-openjdk-11/fixed_libsctp_link_errors_caused_by_GCC10.patch
+@@ -0,0 +1,64 @@
++
++# HG changeset patch
++# User qpzhang
++# Date 1580894055 -28800
++# Node ID 8e6fa89397ca26bf9f573888755d89d7104afcd4
++# Parent  eaefceb7f52e0b17c070c9388e2b2578d48dcf3e
++8238386: (sctp) jdk.sctp/unix/native/libsctp/SctpNet.c "multiple definition" link errors with GCC10
++Summary: Fixed libsctp link errors caused by GCC10 default -fno-common
++Reviewed-by: chegar
++
++diff -r eaefceb7f52e -r 8e6fa89397ca src/jdk.sctp/unix/native/libsctp/Sctp.h
++--- a/src/jdk.sctp/unix/native/libsctp/Sctp.h	Tue Feb 11 14:24:31 2020 +0530
+++++ b/src/jdk.sctp/unix/native/libsctp/Sctp.h	Wed Feb 05 17:14:15 2020 +0800
++@@ -1,5 +1,5 @@
++ /*
++- * Copyright (c) 2009, 2012, Oracle and/or its affiliates. All rights reserved.
+++ * Copyright (c) 2009, 2020, Oracle and/or its affiliates. All rights reserved.
++  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++  *
++  * This code is free software; you can redistribute it and/or modify it
++@@ -322,12 +322,12 @@
++ 
++ #endif /* __linux__ */
++ 
++-sctp_getladdrs_func* nio_sctp_getladdrs;
++-sctp_freeladdrs_func* nio_sctp_freeladdrs;
++-sctp_getpaddrs_func* nio_sctp_getpaddrs;
++-sctp_freepaddrs_func* nio_sctp_freepaddrs;
++-sctp_bindx_func* nio_sctp_bindx;
++-sctp_peeloff_func* nio_sctp_peeloff;
+++extern sctp_getladdrs_func* nio_sctp_getladdrs;
+++extern sctp_freeladdrs_func* nio_sctp_freeladdrs;
+++extern sctp_getpaddrs_func* nio_sctp_getpaddrs;
+++extern sctp_freepaddrs_func* nio_sctp_freepaddrs;
+++extern sctp_bindx_func* nio_sctp_bindx;
+++extern sctp_peeloff_func* nio_sctp_peeloff;
++ 
++ jboolean loadSocketExtensionFuncs(JNIEnv* env);
++ 
++diff -r eaefceb7f52e -r 8e6fa89397ca src/jdk.sctp/unix/native/libsctp/SctpNet.c
++--- a/src/jdk.sctp/unix/native/libsctp/SctpNet.c	Tue Feb 11 14:24:31 2020 +0530
+++++ b/src/jdk.sctp/unix/native/libsctp/SctpNet.c	Wed Feb 05 17:14:15 2020 +0800
++@@ -1,5 +1,5 @@
++ /*
++- * Copyright (c) 2009, 2019, Oracle and/or its affiliates. All rights reserved.
+++ * Copyright (c) 2009, 2020, Oracle and/or its affiliates. All rights reserved.
++  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++  *
++  * This code is free software; you can redistribute it and/or modify it
++@@ -43,6 +43,13 @@
++ static const char* nativeSctpLib = "libsctp.so.1";
++ static jboolean funcsLoaded = JNI_FALSE;
++ 
+++sctp_getladdrs_func* nio_sctp_getladdrs;
+++sctp_freeladdrs_func* nio_sctp_freeladdrs;
+++sctp_getpaddrs_func* nio_sctp_getpaddrs;
+++sctp_freepaddrs_func* nio_sctp_freepaddrs;
+++sctp_bindx_func* nio_sctp_bindx;
+++sctp_peeloff_func* nio_sctp_peeloff;
+++
++ JNIEXPORT jint JNICALL DEF_JNI_OnLoad
++   (JavaVM *vm, void *reserved) {
++     return JNI_VERSION_1_2;
++
+diff --git a/recipes-core/openjdk/patches-openjdk-11/libj2gss_NativeFunc_multiple_definition_link_errors_with_GCC10.patch b/recipes-core/openjdk/patches-openjdk-11/libj2gss_NativeFunc_multiple_definition_link_errors_with_GCC10.patch
+new file mode 100644
+index 0000000..66d480e
+--- /dev/null
++++ b/recipes-core/openjdk/patches-openjdk-11/libj2gss_NativeFunc_multiple_definition_link_errors_with_GCC10.patch
+@@ -0,0 +1,49 @@
++
++# HG changeset patch
++# User qpzhang
++# Date 1580905869 -28800
++# Node ID 9e54ea7d9cd9566d28cfcd9269118a1995fc361c
++# Parent  932418820c80a87b77d96ad5f5525d282f00e82e
++8238388: libj2gss/NativeFunc.o "multiple definition" link errors with GCC10
++Summary: Fixed libj2gss link errors caused by GCC10 default -fno-common
++Reviewed-by: weijun
++
++diff -r 932418820c80 -r 9e54ea7d9cd9 src/java.security.jgss/share/native/libj2gss/NativeFunc.c
++--- a/src/java.security.jgss/share/native/libj2gss/NativeFunc.c	Wed Feb 05 10:45:39 2020 +0100
+++++ b/src/java.security.jgss/share/native/libj2gss/NativeFunc.c	Wed Feb 05 20:31:09 2020 +0800
++@@ -1,5 +1,5 @@
++ /*
++- * Copyright (c) 2005, 2018, Oracle and/or its affiliates. All rights reserved.
+++ * Copyright (c) 2005, 2020, Oracle and/or its affiliates. All rights reserved.
++  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++  *
++  * This code is free software; you can redistribute it and/or modify it
++@@ -27,6 +27,9 @@
++ #include <stdlib.h>
++ #include "NativeFunc.h"
++ 
+++/* global GSS function table */
+++GSS_FUNCTION_TABLE_PTR ftab;
+++
++ /* standard GSS method names (ordering is from mapfile) */
++ static const char RELEASE_NAME[]                = "gss_release_name";
++ static const char IMPORT_NAME[]                 = "gss_import_name";
++diff -r 932418820c80 -r 9e54ea7d9cd9 src/java.security.jgss/share/native/libj2gss/NativeFunc.h
++--- a/src/java.security.jgss/share/native/libj2gss/NativeFunc.h	Wed Feb 05 10:45:39 2020 +0100
+++++ b/src/java.security.jgss/share/native/libj2gss/NativeFunc.h	Wed Feb 05 20:31:09 2020 +0800
++@@ -1,5 +1,5 @@
++ /*
++- * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
+++ * Copyright (c) 2005, 2020, Oracle and/or its affiliates. All rights reserved.
++  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++  *
++  * This code is free software; you can redistribute it and/or modify it
++@@ -277,6 +277,6 @@
++ typedef GSS_FUNCTION_TABLE *GSS_FUNCTION_TABLE_PTR;
++ 
++ /* global GSS function table */
++-GSS_FUNCTION_TABLE_PTR ftab;
+++extern GSS_FUNCTION_TABLE_PTR ftab;
++ 
++ #endif
++
+diff --git a/recipes-core/openjdk/patches-openjdk-11/libjava_childproc_multiple_definition_link_errors_with_GCC10.patch b/recipes-core/openjdk/patches-openjdk-11/libjava_childproc_multiple_definition_link_errors_with_GCC10.patch
+new file mode 100644
+index 0000000..a972bc6
+--- /dev/null
++++ b/recipes-core/openjdk/patches-openjdk-11/libjava_childproc_multiple_definition_link_errors_with_GCC10.patch
+@@ -0,0 +1,48 @@
++
++# HG changeset patch
++# User qpzhang
++# Date 1580822830 -28800
++# Node ID 6925fca959590dd0f747a9cffa5f0664ec02c7b1
++# Parent  8f6ffa575f63db3f07f96e52c97883fbaff459b4
++8238380: java.base/unix/native/libjava/childproc.c "multiple definition" link errors with GCC10
++Reviewed-by: stuefe, clanger, rriggs
++Contributed-by: patrick@os.amperecomputing.com
++
++diff -r 8f6ffa575f63 -r 6925fca95959 src/java.base/unix/native/libjava/childproc.c
++--- a/src/java.base/unix/native/libjava/childproc.c	Tue Feb 11 11:17:37 2020 +0800
+++++ b/src/java.base/unix/native/libjava/childproc.c	Tue Feb 04 21:27:10 2020 +0800
++@@ -1,5 +1,5 @@
++ /*
++- * Copyright (c) 2013, 2019, Oracle and/or its affiliates. All rights reserved.
+++ * Copyright (c) 2013, 2020, Oracle and/or its affiliates. All rights reserved.
++  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++  *
++  * This code is free software; you can redistribute it and/or modify it
++@@ -34,6 +34,7 @@
++ 
++ #include "childproc.h"
++ 
+++const char * const *parentPathv;
++ 
++ ssize_t
++ restartableWrite(int fd, const void *buf, size_t count)
++diff -r 8f6ffa575f63 -r 6925fca95959 src/java.base/unix/native/libjava/childproc.h
++--- a/src/java.base/unix/native/libjava/childproc.h	Tue Feb 11 11:17:37 2020 +0800
+++++ b/src/java.base/unix/native/libjava/childproc.h	Tue Feb 04 21:27:10 2020 +0800
++@@ -1,5 +1,5 @@
++ /*
++- * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved.
+++ * Copyright (c) 2013, 2020, Oracle and/or its affiliates. All rights reserved.
++  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++  *
++  * This code is free software; you can redistribute it and/or modify it
++@@ -126,7 +126,7 @@
++  * The cached and split version of the JDK's effective PATH.
++  * (We don't support putenv("PATH=...") in native code)
++  */
++-const char * const *parentPathv;
+++extern const char * const *parentPathv;
++ 
++ ssize_t restartableWrite(int fd, const void *buf, size_t count);
++ int restartableDup2(int fd_from, int fd_to);
++
+diff --git a/recipes-images/images/openjdk-11-test-image.bb b/recipes-images/images/openjdk-11-test-image.bb
+new file mode 100644
+index 0000000..62be748
+--- /dev/null
++++ b/recipes-images/images/openjdk-11-test-image.bb
+@@ -0,0 +1,3 @@
++IMAGE_INSTALL_append = " openjdk-14 "
++
++inherit openjdk-test-image
+-- 
+2.20.1
+
