@@ -1,0 +1,1693 @@
+From f5825f0869aa938e3f4932dc224e48e5f1b8b192 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Wed, 1 Dec 2021 11:50:37 -0500
+Subject: [PATCH] add n8 compact
+
+---
+ kura/distrib/pom.xml                          |  95 +++
+ .../main/resources/n8-compact/dhcpd-eth0.conf |  15 +
+ .../resources/n8-compact/dhcpd-wlan0.conf     |  15 +
+ .../main/resources/n8-compact/firewall.init   | 111 +++
+ .../resources/n8-compact/firewall.service     |  11 +
+ .../main/resources/n8-compact/hostapd.conf    |  62 ++
+ .../main/resources/n8-compact/iptables.init   |  90 +++
+ .../resources/n8-compact/jdk.dio.properties   |  32 +
+ .../main/resources/n8-compact/kura.properties |  99 +++
+ .../main/resources/n8-compact/kura_install.sh | 148 ++++
+ .../main/resources/n8-compact/kura_upgrade.sh |  28 +
+ .../main/resources/n8-compact/kuranet.conf    |  16 +
+ .../src/main/resources/n8-compact/log4j.xml   |  58 ++
+ .../resources/n8-compact/network.interfaces   |  15 +
+ .../n8-compact/recover_default_config.init    |  66 ++
+ .../main/resources/n8-compact/snapshot_0.xml  | 687 ++++++++++++++++++
+ 16 files changed, 1548 insertions(+)
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/dhcpd-eth0.conf
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/dhcpd-wlan0.conf
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/firewall.init
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/firewall.service
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/hostapd.conf
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/iptables.init
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/jdk.dio.properties
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/kura.properties
+ create mode 100755 kura/distrib/src/main/resources/n8-compact/kura_install.sh
+ create mode 100755 kura/distrib/src/main/resources/n8-compact/kura_upgrade.sh
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/kuranet.conf
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/log4j.xml
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/network.interfaces
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/recover_default_config.init
+ create mode 100644 kura/distrib/src/main/resources/n8-compact/snapshot_0.xml
+
+diff --git a/kura/distrib/pom.xml b/kura/distrib/pom.xml
+index 8c9f37997..61d855002 100644
+--- a/kura/distrib/pom.xml
++++ b/kura/distrib/pom.xml
+@@ -1740,6 +1740,101 @@
+             </build>
+         </profile>
+ 
++        <profile>
++            <id>n8-compact</id>
++            <properties>
++                <project.raspbian.dependencies>hostapd, isc-dhcp-server, iw, dos2unix, bind9, unzip, ethtool, telnet, bluez-hcidump,
++                    wireless-tools, chrony, ntpdate, java8-runtime-headless | java8-runtime</project.raspbian.dependencies>
++            </properties>
++            <activation>
++                <activeByDefault>true</activeByDefault>
++            </activation>
++            <build>
++                <resources>
++                    <resource>
++                        <directory>src/main/resources</directory>
++                        <filtering>true</filtering>
++                    </resource>
++                </resources>
++                <plugins>
++                    <plugin>
++                        <groupId>org.codehaus.mojo</groupId>
++                        <artifactId>buildnumber-maven-plugin</artifactId>
++                        <version>1.0</version>
++                        <executions>
++                            <execution>
++                                <phase>validate</phase>
++                                <goals>
++                                    <goal>create-timestamp</goal>
++                                </goals>
++                            </execution>
++                        </executions>
++                    </plugin>
++                    <plugin>
++                        <groupId>org.apache.maven.plugins</groupId>
++                        <artifactId>maven-antrun-plugin</artifactId>
++                        <version>1.7</version>
++                        <executions>
++                            <execution>
++                                <id>n8-compact</id>
++                                <phase>prepare-package</phase>
++                                <goals>
++                                    <goal>run</goal>
++                                </goals>
++                                <configuration>
++                                    <target>
++                                        <property name="buildNumber" value="buildNumber" />
++                                        <property name="project.version" value="${project.version}" />
++                                        <property name="project.build.profile" value="${project.build.profile}" />
++                                        <property name="project.build.directory" value="${project.build.directory}" />
++                                        <property name="build.name" value="n8-compact" />
++                                        <property name="target.device" value="n8-compact" />
++                                        <property name="native.tag" value="aarch64" />
++                                        <property name="kura.os.version" value="debian" />
++                                        <property name="kura.arch" value="aarch64" />
++                                        <property name="service.manager" value="systemd" />
++                                        <property name="os.base" value="debian" />
++                                        <property name="kura.mem.size" value="256m" />
++                                        <property name="kura.install.dir" value="/opt/eclipse" />
++                                        <ant antfile="${basedir}/src/main/ant/build_equinox_distrib.xml" target="dist-linux" />
++                                    </target>
++                                </configuration>
++                            </execution>
++                        </executions>
++                    </plugin>
++                    <plugin>
++                        <groupId>org.vafer</groupId>
++                        <artifactId>jdeb</artifactId>
++                        <version>1.0</version>
++                        <executions>
++                            <execution>
++                                <id>n8-compact-deb</id>
++                                <phase>package</phase>
++                                <goals>
++                                    <goal>jdeb</goal>
++                                </goals>
++                                <configuration>
++                                    <verbose>true</verbose>
++                                    <deb>${basedir}/target/kura_${project.version}_n8-compact_installer.deb</deb>
++                                    <controlDir>${basedir}/src/main/deb/control</controlDir>
++                                    <dataSet>
++                                        <data>
++                                            <src>${basedir}/target/kura_${project.version}_n8-compact.zip</src>
++                                            <type>file</type>
++                                            <mapper>
++                                                <type>perm</type>
++                                                <prefix>/tmp</prefix>
++                                            </mapper>
++                                        </data>
++                                    </dataSet>
++                                </configuration>
++                            </execution>
++                        </executions>
++                    </plugin>
++                </plugins>
++            </build>
++        </profile>
++
+         <profile>
+             <id>dev-env</id>
+             <activation>
+diff --git a/kura/distrib/src/main/resources/n8-compact/dhcpd-eth0.conf b/kura/distrib/src/main/resources/n8-compact/dhcpd-eth0.conf
+new file mode 100644
+index 000000000..3af2e5931
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/dhcpd-eth0.conf
+@@ -0,0 +1,15 @@
++# enabled? true
++# prefix: 24
++# pass DNS? true
++
++subnet 172.16.0.0 netmask 255.255.255.0 {
++    option domain-name-servers 172.16.0.1;
++
++    interface eth0;
++    option routers 172.16.0.1;
++    default-lease-time 7200;
++    max-lease-time 7200;
++    pool {
++        range 172.16.0.100 172.16.0.110;
++    }
++}
+diff --git a/kura/distrib/src/main/resources/n8-compact/dhcpd-wlan0.conf b/kura/distrib/src/main/resources/n8-compact/dhcpd-wlan0.conf
+new file mode 100644
+index 000000000..919fbf68f
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/dhcpd-wlan0.conf
+@@ -0,0 +1,15 @@
++# enabled? true
++# prefix: 24
++# pass DNS? true
++
++subnet 172.16.1.0 netmask 255.255.255.0 {
++    option domain-name-servers 172.16.1.1;
++
++    interface wlan0;
++    option routers 172.16.1.1;
++    default-lease-time 7200;
++    max-lease-time 7200;
++    pool {
++        range 172.16.1.100 172.16.1.110;
++    }
++}
+diff --git a/kura/distrib/src/main/resources/n8-compact/firewall.init b/kura/distrib/src/main/resources/n8-compact/firewall.init
+new file mode 100644
+index 000000000..6e181d7dc
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/firewall.init
+@@ -0,0 +1,111 @@
++#!/bin/bash
++# iptables-restore script
++iptables_config_file=/etc/sysconfig/iptables
++ipforward_file=/proc/sys/net/ipv4/ip_forward
++enable_ipforwarding=false;
++
++create_filter_chains() {
++	# create custom chains if needed
++	custom_filter_chains=(input-kura output-kura forward-kura)
++	for custom_chain in ${custom_filter_chains[@]}; do
++	    chain=(${custom_chain//-/ })
++	    iptables -C ${chain[0]^^} -j $custom_chain -t filter > /dev/null 2>&1
++	    if [[ $? -ne 0 ]]; then
++	        iptables -N $custom_chain -t filter > /dev/null 2>&1
++	        iptables -I ${chain[0]^^} -t filter -j $custom_chain > /dev/null 2>&1
++	    fi
++	done
++	custom_filter_chains=(forward-kura-pf forward-kura-ipf)
++	for custom_chain in ${custom_filter_chains[@]}; do
++	    iptables -C forward-kura -j $custom_chain -t filter > /dev/null 2>&1
++	    if [[ $? -ne 0 ]]; then
++	        iptables -N $custom_chain -t filter > /dev/null 2>&1
++	        iptables -I forward-kura -t filter -j $custom_chain > /dev/null 2>&1
++	    fi
++	done
++}
++
++create_nat_chains() {
++	custom_nat_chains=(prerouting-kura postrouting-kura input-kura output-kura)
++	for custom_chain in ${custom_nat_chains[@]}; do
++	    chain=(${custom_chain//-/ }[0])
++	    iptables -C ${chain[0]^^} -j $custom_chain -t nat > /dev/null 2>&1
++	    if [[ $? -ne 0 ]]; then
++	        iptables -N $custom_chain -t nat > /dev/null 2>&1
++	        iptables -I ${chain[0]^^} -t nat -j $custom_chain > /dev/null 2>&1
++	    fi
++	done
++	iptables -C prerouting-kura -j prerouting-kura-pf -t nat > /dev/null 2>&1
++	if [[ $? -ne 0 ]]; then
++	    iptables -N prerouting-kura-pf -t nat > /dev/null 2>&1
++	    iptables -I prerouting-kura -t nat -j prerouting-kura-pf > /dev/null 2>&1
++	fi
++	custom_nat_chains=(postrouting-kura-pf postrouting-kura-ipf)
++	for custom_chain in ${custom_nat_chains[@]}; do
++	    iptables -C postrouting-kura -j $custom_chain -t nat > /dev/null 2>&1
++	    if [[ $? -ne 0 ]]; then
++	        iptables -N $custom_chain -t nat > /dev/null 2>&1
++	        iptables -I postrouting-kura -t nat -j $custom_chain > /dev/null 2>&1
++	    fi
++	done
++}
++
++create_mangle_chains() {
++	custom_mangle_chains=(prerouting-kura postrouting-kura input-kura output-kura forward-kura)
++	for custom_chain in ${custom_mangle_chains[@]}; do
++	    chain=(${custom_chain//-/ }[0])
++	    iptables -C ${chain[0]^^} -j $custom_chain -t mangle > /dev/null 2>&1
++	    if [[ $? -ne 0 ]]; then
++	        iptables -N $custom_chain -t mangle > /dev/null 2>&1
++	        iptables -I ${chain[0]^^} -t mangle -j $custom_chain > /dev/null 2>&1
++	    fi
++	done
++}
++
++configure_policies() {
++	# configure policies for standard chains
++	policy=$(iptables -nL -t filter | grep policy | grep INPUT)
++	if [[ "$policy" == *ACCEPT* ]]; then
++		iptables -P INPUT DROP
++	fi
++	policy=$(iptables -nL -t filter | grep policy | grep OUTPUT)
++	if [[ "$policy" == *DROP* ]]; then
++		iptables -P OUTPUT ACCEPT
++	fi
++	policy=$(iptables -nL -t filter | grep policy | grep FORWARD)
++	if [[ "$policy" == *ACCEPT* ]]; then
++		iptables -P FORWARD DROP
++	fi
++}
++
++configure_ip_forwarding() {
++	# enable ip forwarding if needed
++	if [ -f $iptables_config_file ]; then
++		while IFS='' read -r line || [[ -n "$line" ]]; do
++		    if [[ $line =~ "-A forward-kura" ]]; then
++		        enable_ipforwarding=true
++		        break
++		    fi
++		done < $iptables_config_file
++	fi
++	if [ $enable_ipforwarding = true ]; then
++	    echo "1" > $ipforward_file
++	else
++	    echo "0" > $ipforward_file
++	fi
++}
++
++if [ -f $iptables_config_file ]; then
++	iptables-restore < $iptables_config_file
++fi
++
++create_filter_chains
++create_nat_chains
++create_mangle_chains
++configure_policies
++configure_ip_forwarding
++
++# source a custom firewall script
++if [ -f /etc/init.d/firewall_cust ]; then
++    source /etc/init.d/firewall_cust 2> /dev/null
++fi
+\ No newline at end of file
+diff --git a/kura/distrib/src/main/resources/n8-compact/firewall.service b/kura/distrib/src/main/resources/n8-compact/firewall.service
+new file mode 100644
+index 000000000..d3dec2c4d
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/firewall.service
+@@ -0,0 +1,11 @@
++[Unit]
++Description=Firewall configuration
++Before=network-pre.target docker.service
++Wants=network-pre.target
++
++[Service]
++Type=oneshot
++ExecStart=/bin/sh KURA_DIR/bin/firewall
++
++[Install]
++WantedBy=multi-user.target
+diff --git a/kura/distrib/src/main/resources/n8-compact/hostapd.conf b/kura/distrib/src/main/resources/n8-compact/hostapd.conf
+new file mode 100644
+index 000000000..33f2b7b01
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/hostapd.conf
+@@ -0,0 +1,62 @@
++# /etc/hostapd/hostapd.conf
++
++#example: wlan0
++interface=wlan0
++#example: nl80211
++driver=nl80211
++
++# SSID to use. This will be the "name" of the accesspoint
++#example: catalyst
++ssid=kura_gateway
++
++# basic operational settings
++#example: g
++hw_mode=g
++
++wme_enabled=0
++ieee80211n=0
++
++#example: 1
++channel=1
++
++# Logging and debugging settings: more of this in original config file
++logger_syslog=-1
++logger_syslog_level=2
++logger_stdout=-1
++logger_stdout_level=2
++dump_file=/tmp/hostapd.dump
++
++# WPA settings. We'll use stronger WPA2
++# bit0 = WPA
++# bit1 = IEEE 802.11i/RSN (WPA2) (dot11RSNAEnabled)
++wpa=2
++
++# Preshared key of between 8-63 ASCII characters.
++# If you define the key in here, make sure that the file is not readable
++# by anyone but root. Alternatively you can use a separate file for the
++# key; see original hostapd.conf for more information.
++#example TheKeyMyCatalystUSES!1
++wpa_passphrase=testKEYS
++
++# Key management algorithm. In this case, a simple pre-shared key (PSK)
++wpa_key_mgmt=WPA-PSK
++
++# The cipher suite to use. We want to use stronger CCMP cipher.
++wpa_pairwise=CCMP
++
++# Change the broadcasted/multicasted keys after this many seconds.
++wpa_group_rekey=600
++
++# Change the master key after this many seconds. Master key is used as a basis
++# (source) for the encryption keys.
++wpa_gmk_rekey=86400
++
++# Send empty SSID in beacons and ignore probe request frames that do not
++# specify full SSID, i.e., require stations to know SSID.
++# default: disabled (0)
++# 1 = send empty (length=0) SSID in beacon and ignore probe request for
++#     broadcast SSID
++# 2 = clear SSID (ASCII 0), but keep the original length (this may be required
++#     with some clients that do not support empty SSID) and ignore probe
++#     requests for broadcast SSID
++ignore_broadcast_ssid=0
+diff --git a/kura/distrib/src/main/resources/n8-compact/iptables.init b/kura/distrib/src/main/resources/n8-compact/iptables.init
+new file mode 100644
+index 000000000..9ea79da4d
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/iptables.init
+@@ -0,0 +1,90 @@
++*nat
++:PREROUTING ACCEPT [0:0]
++:INPUT ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++:POSTROUTING ACCEPT [0:0]
++:input-kura - [0:0]
++:output-kura - [0:0]
++:postrouting-kura - [0:0]
++:postrouting-kura-pf - [0:0]
++:postrouting-kura-ipf - [0:0]
++:prerouting-kura - [0:0]
++:prerouting-kura-pf - [0:0]
++-I PREROUTING -j prerouting-kura
++-I prerouting-kura -j prerouting-kura-pf
++-I INPUT -j input-kura
++-I OUTPUT -j output-kura
++-I POSTROUTING -j postrouting-kura
++-I postrouting-kura -j postrouting-kura-pf
++-I postrouting-kura -j postrouting-kura-ipf
++-A prerouting-kura -j RETURN
++-A input-kura -j RETURN
++-A output-kura -j RETURN
++-A postrouting-kura -o eth0 -j MASQUERADE
++-A postrouting-kura -j RETURN
++-A postrouting-kura-pf -j RETURN
++-A postrouting-kura-ipf -j RETURN
++-A prerouting-kura-pf -j RETURN
++COMMIT
++*filter
++:INPUT DROP [0:0]
++:FORWARD DROP [0:0]
++:OUTPUT ACCEPT [0:0]
++:input-kura - [0:0]
++:output-kura - [0:0]
++:forward-kura - [0:0]
++:forward-kura-pf - [0:0]
++:forward-kura-ipf - [0:0]
++-I INPUT -j input-kura
++-I FORWARD -j forward-kura
++-I OUTPUT -j output-kura
++-I forward-kura -j forward-kura-pf
++-I forward-kura -j forward-kura-ipf
++-A input-kura -i wlan0 -p tcp -m tcp --dport 8000 -j ACCEPT
++-A input-kura -i eth0 -p tcp -m tcp --dport 8000 -j ACCEPT
++-A input-kura -i wlan0 -p udp -m udp --dport 67 -j ACCEPT
++-A input-kura -i eth0 -p udp -m udp --dport 67 -j ACCEPT
++-A input-kura -i wlan0 -p udp -m udp --dport 53 -j ACCEPT
++-A input-kura -i eth0 -p udp -m udp --dport 53 -j ACCEPT
++-A input-kura -s 127.0.0.1/32 -p tcp -m tcp --dport 5002 -j ACCEPT
++-A input-kura -i wlan0 -p tcp -m tcp --dport 1450 -j ACCEPT
++-A input-kura -i eth0 -p tcp -m tcp --dport 1450 -j ACCEPT
++-A input-kura -i wlan0 -p tcp -m tcp --dport 443 -j ACCEPT
++-A input-kura -i eth0 -p tcp -m tcp --dport 443 -j ACCEPT
++-A input-kura -i wlan0 -p tcp -m tcp --dport 4443 -j ACCEPT
++-A input-kura -i eth0 -p tcp -m tcp --dport 4443 -j ACCEPT
++-A input-kura -p tcp -m tcp --dport 22 -j ACCEPT
++-A input-kura -i lo -j ACCEPT
++-A input-kura -m state --state RELATED,ESTABLISHED -j ACCEPT
++-A input-kura -p icmp -m icmp --icmp-type 8 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
++-A input-kura -j RETURN
++-A forward-kura -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
++-A forward-kura -i wlan0 -o eth0 -j ACCEPT
++-A forward-kura -j RETURN
++-A output-kura -p icmp -m icmp --icmp-type 0 -m state --state RELATED,ESTABLISHED -j ACCEPT
++-A output-kura -j RETURN
++-A forward-kura-pf -j RETURN
++-A forward-kura-ipf -j RETURN
++COMMIT
++*mangle
++:PREROUTING ACCEPT [0:0]
++:INPUT ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++:FORWARD ACCEPT [0:0]
++:POSTROUTING ACCEPT [0:0]
++:input-kura - [0:0]
++:output-kura - [0:0]
++:forward-kura - [0:0]
++:postrouting-kura - [0:0]
++:prerouting-kura - [0:0]
++-I PREROUTING -j prerouting-kura
++-I INPUT -j input-kura
++-I OUTPUT -j output-kura
++-I FORWARD -j forward-kura
++-I POSTROUTING -j postrouting-kura
++-A prerouting-kura -j RETURN
++-A input-kura -j RETURN
++-A output-kura -j RETURN
++-A forward-kura -j RETURN
++-A postrouting-kura -j RETURN
++COMMIT
+diff --git a/kura/distrib/src/main/resources/n8-compact/jdk.dio.properties b/kura/distrib/src/main/resources/n8-compact/jdk.dio.properties
+new file mode 100644
+index 000000000..4f1b90ac3
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/jdk.dio.properties
+@@ -0,0 +1,32 @@
++#
++#  Copyright (c) 2011, 2020 Eurotech and/or its affiliates and others
++#
++#  This program and the accompanying materials are made
++#  available under the terms of the Eclipse Public License 2.0
++#  which is available at https://www.eclipse.org/legal/epl-2.0/
++#
++#  SPDX-License-Identifier: EPL-2.0
++#
++#  Contributors:
++#   Eurotech
++#
++
++5 = deviceType: gpio.GPIOPin, pinNumber:5, name:GPIO05
++6 = deviceType: gpio.GPIOPin, pinNumber:6, name:GPIO06
++12 = deviceType: gpio.GPIOPin, pinNumber:12, name:GPIO12
++13 = deviceType: gpio.GPIOPin, pinNumber:13, name:GPIO13
++16 = deviceType: gpio.GPIOPin, pinNumber:16, name:GPIO16
++17 = deviceType: gpio.GPIOPin, pinNumber:17, name:GPIO_GEN0
++18 = deviceType: gpio.GPIOPin, pinNumber:18, name:GPIO_GEN1
++19 = deviceType: gpio.GPIOPin, pinNumber:19, name:GPIO19
++20 = deviceType: gpio.GPIOPin, pinNumber:20, name:GPIO20
++21 = deviceType: gpio.GPIOPin, pinNumber:21, name:GPIO21
++22 = deviceType: gpio.GPIOPin, pinNumber:22, name:GPIO_GEN3
++23 = deviceType: gpio.GPIOPin, pinNumber:23, name:GPIO_GEN4
++24 = deviceType: gpio.GPIOPin, pinNumber:24, name:GPIO_GEN5
++25 = deviceType: gpio.GPIOPin, pinNumber:25, name:GPIO_GEN6
++26 = deviceType: gpio.GPIOPin, pinNumber:26, name:GPIO26
++27 = deviceType: gpio.GPIOPin, pinNumber:27, name:GPIO_GEN2
++
++gpio.GPIOPin = initValue:0, deviceNumber:0, direction:3, mode:-1, trigger:3
++uart.UART = baudRate:19200, parity:0, dataBits:8, stopBits:1, flowControl:0
+diff --git a/kura/distrib/src/main/resources/n8-compact/kura.properties b/kura/distrib/src/main/resources/n8-compact/kura.properties
+new file mode 100644
+index 000000000..9e88d65a3
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/kura.properties
+@@ -0,0 +1,99 @@
++#
++#  Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
++#
++#  This program and the accompanying materials are made
++#  available under the terms of the Eclipse Public License 2.0
++#  which is available at https://www.eclipse.org/legal/epl-2.0/
++#
++#  SPDX-License-Identifier: EPL-2.0
++#
++#  Contributors:
++#   Eurotech
++#
++
++## -----------------------------------------------------------------------------
++##  Kura Properties
++## -----------------------------------------------------------------------------
++kura.name=Eclipse Kura
++kura.version=
++kura.marketplace.compatibility.version=
++kura.company=EUROTECH
++kura.project=Raspberry-Pi
++kura.platform=Raspberry-Pi
++kura.device.name=Raspberry-Pi
++kura.model.id=Raspberry-Pi
++kura.model.name=Raspberry-Pi
++kura.partNumber=Raspberry-Pi
++# kura.serialNumber=Raspberry-Pi
++kura.serialNumber.provider=cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2
++kura.bios.version=N/A
++kura.firmware.version=N/A
++kura.primary.network.interface=eth0
++# kura.mac.address= Fetch from Java
++kura.home={kura.install.dir}/{kura.symlink}
++kura.framework.config={kura.install.dir}/{kura.symlink}/framework
++kura.user.config={kura.install.dir}/{kura.symlink}/user
++kura.plugins={kura.install.dir}/{kura.symlink}/plugins
++kura.packages={kura.install.dir}/{kura.symlink}/packages
++kura.data={kura.install.dir}/{kura.symlink}/data
++kura.tmp=/tmp/.kura
++kura.snapshots={kura.install.dir}/{kura.symlink}/user/snapshots
++kura.style.dir={kura.install.dir}/{kura.symlink}/console/skin
++#kura.have.net.admin=true
++kura.net.virtual.devices.config=unmanaged
++kura.log.download.sources=/var/log
++kura.log.download.journal.fields=SYSLOG_IDENTIFIER,PRIORITY,MESSAGE,STACKTRACE
++# os.arch= Fetch from Java
++# os.name= Fetch from Java
++# os.version= Fetch from Java
++os.distribution=Linux
++os.distribution.version=N/A
++# java.version= Fetch from Java
++# java.vendor= Fetch from Java
++# java.vm.name= Fetch from Java
++# java.vm.version= Fetch from Java
++# java.home= Fetch from Java
++# file.separator= Fetch from Java
++kura.command.user=kura
++kura.legacy.bluetooth.beacon.scan=false
++
++
++## -----------------------------------------------------------------------------
++##  Remote Configuration Properties
++## -----------------------------------------------------------------------------
++console.device.management.service.ignore=org.eclipse.kura.net.admin.NetworkConfigurationService,org.eclipse.kura.net.admin.FirewallConfigurationService
++
++## -----------------------------------------------------------------------------
++## File upload settings
++## -----------------------------------------------------------------------------
++# default 10240
++file.upload.in.memory.size.threshold=10240
++# -1: unlimited (default)
++file.upload.size.max=-1
++file.command.zip.max.size=100
++file.command.zip.max.number=1024
++
++
++## -----------------------------------------------------------------------------
++## Deployment Agent settings
++## -----------------------------------------------------------------------------
++# see copyURLToFile() http://commons.apache.org/proper/commons-io/javadocs/api-2.4/index.html
++dpa.connection.timeout = 60000
++dpa.read.timeout = 60000
++
++## -----------------------------------------------------------------------------
++## Cloud Connection Status settings
++## -----------------------------------------------------------------------------
++
++#1. Cloud Connection Status on system log
++#The Cloud Connection Status will be indicated in the log files, and nowere else
++ccs.status.notification.url=ccs:log
++
++#2. Cloud Connection Status on LED
++#The Cloud Connection Status will be indicated by a blinking LED connected to the system GPIOs
++#The URL should indicate the GPIO logic index of the GPIO Pin used for the LED
++#ccs.status.notification.url=ccs:led:16
++
++#3. Cloud Connection Status disabled
++#Disables the Cloud Connection Status service
++#ccs.status.notification.url=ccs:none
+diff --git a/kura/distrib/src/main/resources/n8-compact/kura_install.sh b/kura/distrib/src/main/resources/n8-compact/kura_install.sh
+new file mode 100755
+index 000000000..672d7974d
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/kura_install.sh
+@@ -0,0 +1,148 @@
++#!/bin/sh
++#
++#  Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
++#
++#  This program and the accompanying materials are made
++#  available under the terms of the Eclipse Public License 2.0
++#  which is available at https://www.eclipse.org/legal/epl-2.0/
++#
++#  SPDX-License-Identifier: EPL-2.0
++#
++#  Contributors:
++#   Eurotech
++#
++
++INSTALL_DIR=/opt/eclipse
++
++#create known kura install location
++ln -sf ${INSTALL_DIR}/kura_* ${INSTALL_DIR}/kura
++        
++#set up Kura init
++sed "s|INSTALL_DIR|${INSTALL_DIR}|" ${INSTALL_DIR}/kura/install/kura.service > /lib/systemd/system/kura.service
++systemctl daemon-reload
++systemctl enable kura
++chmod +x ${INSTALL_DIR}/kura/bin/*.sh
++
++# setup snapshot_0 recovery folder
++if [ ! -d ${INSTALL_DIR}/kura/.data ]; then
++    mkdir ${INSTALL_DIR}/kura/.data
++fi
++
++mkdir -p ${INSTALL_DIR}/kura/data
++
++# setup /etc/sysconfig folder for iptables configuration file
++if [ ! -d /etc/sysconfig ]; then
++    mkdir /etc/sysconfig
++fi
++
++#set up users and grant permissions to them
++cp ${INSTALL_DIR}/kura/install/manage_kura_users.sh ${INSTALL_DIR}/kura/.data/manage_kura_users.sh
++chmod 700 ${INSTALL_DIR}/kura/.data/manage_kura_users.sh
++${INSTALL_DIR}/kura/.data/manage_kura_users.sh -i
++
++#set up default networking file
++cp ${INSTALL_DIR}/kura/install/network.interfaces /etc/network/interfaces
++cp ${INSTALL_DIR}/kura/install/network.interfaces ${INSTALL_DIR}/kura/.data/interfaces
++
++#set up network helper scripts
++cp ${INSTALL_DIR}/kura/install/ifup-local.raspbian /etc/network/if-up.d/ifup-local
++cp ${INSTALL_DIR}/kura/install/ifdown-local /etc/network/if-down.d/ifdown-local
++chmod +x /etc/network/if-up.d/ifup-local
++chmod +x /etc/network/if-down.d/ifdown-local
++
++#set up recover default configuration script
++cp ${INSTALL_DIR}/kura/install/recover_default_config.init ${INSTALL_DIR}/kura/bin/.recoverDefaultConfig.sh
++chmod +x ${INSTALL_DIR}/kura/bin/.recoverDefaultConfig.sh
++
++#set up default firewall configuration
++cp ${INSTALL_DIR}/kura/install/iptables.init ${INSTALL_DIR}/kura/.data/iptables
++chmod 644 ${INSTALL_DIR}/kura/.data/iptables
++cp ${INSTALL_DIR}/kura/.data/iptables /etc/sysconfig/iptables
++cp ${INSTALL_DIR}/kura/install/firewall.init ${INSTALL_DIR}/kura/bin/firewall
++chmod 755 ${INSTALL_DIR}/kura/bin/firewall
++cp ${INSTALL_DIR}/kura/install/firewall.service /lib/systemd/system/firewall.service
++chmod 644 /lib/systemd/system/firewall.service
++sed -i "s|/bin/sh KURA_DIR|/bin/bash ${INSTALL_DIR}/kura|" /lib/systemd/system/firewall.service
++systemctl daemon-reload
++systemctl enable firewall
++
++#copy snapshot_0.xml
++cp ${INSTALL_DIR}/kura/user/snapshots/snapshot_0.xml ${INSTALL_DIR}/kura/.data/snapshot_0.xml
++
++#disable NTP service
++if command -v timedatectl > /dev/null ;
++  then
++    timedatectl set-ntp false
++fi
++
++# Prevent time sync services from starting
++systemctl stop systemd-timesyncd
++systemctl disable systemd-timesyncd
++# Prevent time sync with chrony from starting.
++systemctl stop chrony
++systemctl disable chrony
++
++#set up networking configuration
++mac_addr=$(head -1 /sys/class/net/eth0/address | tr '[:lower:]' '[:upper:]')
++sed "s/^ssid=kura_gateway.*/ssid=kura_gateway_${mac_addr}/" < ${INSTALL_DIR}/kura/install/hostapd.conf > /etc/hostapd-wlan0.conf
++cp /etc/hostapd-wlan0.conf ${INSTALL_DIR}/kura/.data/hostapd-wlan0.conf
++
++cp ${INSTALL_DIR}/kura/install/dhcpd-eth0.conf /etc/dhcpd-eth0.conf
++cp ${INSTALL_DIR}/kura/install/dhcpd-eth0.conf ${INSTALL_DIR}/kura/.data/dhcpd-eth0.conf
++
++cp ${INSTALL_DIR}/kura/install/dhcpd-wlan0.conf /etc/dhcpd-wlan0.conf
++cp ${INSTALL_DIR}/kura/install/dhcpd-wlan0.conf ${INSTALL_DIR}/kura/.data/dhcpd-wlan0.conf
++
++#set up kuranet.conf
++cp ${INSTALL_DIR}/kura/install/kuranet.conf ${INSTALL_DIR}/kura/user/kuranet.conf
++cp ${INSTALL_DIR}/kura/install/kuranet.conf ${INSTALL_DIR}/kura/.data/kuranet.conf
++
++#assigning kuranet.conf files ownership to kurad
++chown kurad:kurad ${INSTALL_DIR}/kura/user/kuranet.conf
++chown kurad:kurad ${INSTALL_DIR}/kura/.data/kuranet.conf
++
++#set up bind/named
++cp ${INSTALL_DIR}/kura/install/named.conf /etc/bind/named.conf
++mkdir -p /var/named
++chown -R bind /var/named
++cp ${INSTALL_DIR}/kura/install/named.ca /var/named/
++cp ${INSTALL_DIR}/kura/install/named.rfc1912.zones /etc/
++cp ${INSTALL_DIR}/kura/install/usr.sbin.named /etc/apparmor.d/
++if [ ! -f "/etc/bind/rndc.key" ] ; then
++	rndc-confgen -r /dev/urandom -a
++fi
++chown bind:bind /etc/bind/rndc.key
++chmod 600 /etc/bind/rndc.key
++        
++#set up logrotate - no need to restart as it is a cronjob
++cp ${INSTALL_DIR}/kura/install/logrotate.conf /etc/logrotate.conf
++cp ${INSTALL_DIR}/kura/install/kura.logrotate /etc/logrotate.d/kura
++
++# disable dhcpcd service - kura is the network manager
++systemctl stop dhcpcd
++systemctl disable dhcpcd
++
++#assigning possible .conf files ownership to kurad
++PATTERN="/etc/dhcpd*.conf* /etc/resolv.conf* /etc/wpa_supplicant*.conf* /etc/hostapd*.conf*"
++for FILE in $(ls $PATTERN 2>/dev/null)
++do
++  chown kurad:kurad $FILE
++done
++
++# execute patch_sysctl.sh from installer install folder
++chmod 700 ${INSTALL_DIR}/kura/install/patch_sysctl.sh
++${INSTALL_DIR}/kura/install/patch_sysctl.sh ${INSTALL_DIR}/kura/install/sysctl.kura.conf /etc/sysctl.conf
++
++if ! [ -d /sys/class/net ]
++then
++    sysctl -p || true
++else
++    sysctl -w net.ipv6.conf.all.disable_ipv6=1
++    sysctl -w net.ipv6.conf.default.disable_ipv6=1
++    for INTERFACE in $(ls /sys/class/net)
++    do
++ 	    sysctl -w net.ipv6.conf.${INTERFACE}.disable_ipv6=1
++    done
++fi
++
++keytool -genkey -alias localhost -keyalg RSA -keysize 2048 -keystore /opt/eclipse/kura/user/security/httpskeystore.ks -deststoretype pkcs12 -dname "CN=Kura, OU=Kura, O=Eclipse Foundation, L=Ottawa, S=Ontario, C=CA" -ext ku=digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment,keyAgreement,keyCertSign -ext eku=serverAuth,clientAuth,codeSigning,timeStamping -validity 1000 -storepass changeit -keypass changeit  
+\ No newline at end of file
+diff --git a/kura/distrib/src/main/resources/n8-compact/kura_upgrade.sh b/kura/distrib/src/main/resources/n8-compact/kura_upgrade.sh
+new file mode 100755
+index 000000000..e9410c70f
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/kura_upgrade.sh
+@@ -0,0 +1,28 @@
++#!/bin/sh
++#
++#  Copyright (c) 2011, 2020 Eurotech and/or its affiliates and others
++#
++#  This program and the accompanying materials are made
++#  available under the terms of the Eclipse Public License 2.0
++#  which is available at https://www.eclipse.org/legal/epl-2.0/
++#
++#  SPDX-License-Identifier: EPL-2.0
++#
++#  Contributors:
++#   Eurotech
++#
++
++INSTALL_DIR=/opt/eclipse
++
++#create known kura install location
++ln -sf ${INSTALL_DIR}/kura_* ${INSTALL_DIR}/kura
++
++#set up network helper scripts
++cp ${INSTALL_DIR}/kura/install/ifup-local.raspbian /etc/network/if-up.d/ifup-local
++cp ${INSTALL_DIR}/kura/install/ifdown-local /etc/network/if-down.d/ifdown-local
++chmod +x /etc/network/if-up.d/ifup-local
++chmod +x /etc/network/if-down.d/ifdown-local
++
++#set up logrotate - no need to restart as it is a cronjob
++cp ${INSTALL_DIR}/kura/install/logrotate.conf /etc/logrotate.conf
++cp ${INSTALL_DIR}/kura/install/kura.logrotate /etc/logrotate.d/kura
+diff --git a/kura/distrib/src/main/resources/n8-compact/kuranet.conf b/kura/distrib/src/main/resources/n8-compact/kuranet.conf
+new file mode 100644
+index 000000000..197598d9c
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/kuranet.conf
+@@ -0,0 +1,16 @@
++#Tue Sep 10 17:49:05 GMT 2013
++net.interface.eth0.config.ip4.status=netIPv4StatusEnabledWAN
++net.interface.eth0.config.dhcpServer4.enabled=false
++net.interface.eth0.config.nat.dst.interface=unknown
++net.interface.eth0.config.dhcpServer4.passDns=false
++net.interface.eth0.config.nat.enabled=false
++net.interface.lo.config.ip4.status=netIPv4StatusEnabledLAN
++net.interface.wlan0.config.nat.masquerade=true
++net.interface.wlan0.config.wifi.mode=MASTER
++net.interface.wlan0.config.dhcpServer4.passDns=true
++net.interface.wlan0.config.dhcpServer4.enabled=true
++net.interface.wlan0.config.ip4.status=netIPv4StatusEnabledLAN
++net.interface.wlan0.config.wifi.infra.driver=nl80211
++net.interface.wlan0.config.nat.enabled=true
++net.interface.wlan0.config.nat.dst.interface=unknown
++net.interface.docker0.config.ip4.status=netIPv4StatusUnmanaged
+diff --git a/kura/distrib/src/main/resources/n8-compact/log4j.xml b/kura/distrib/src/main/resources/n8-compact/log4j.xml
+new file mode 100644
+index 000000000..78995e9a4
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/log4j.xml
+@@ -0,0 +1,58 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++
++    Copyright (c) 2018, 2020 Eurotech and/or its affiliates and others
++  
++    This program and the accompanying materials are made
++    available under the terms of the Eclipse Public License 2.0
++    which is available at https://www.eclipse.org/legal/epl-2.0/
++ 
++	SPDX-License-Identifier: EPL-2.0
++	
++	Contributors:
++     Eurotech
++     
++-->
++<Configuration status="warn" strict="true" name="KuraConfig" monitorInterval="30">
++    <Properties>
++        <Property name="log_dir">/var/log</Property>
++        <Property name="log_name">kura</Property>
++    </Properties>
++    <Filter type="ThresholdFilter" level="trace"/>
++    <Appenders>
++        <RollingFile name="RollingFile" fileName="${log_dir}/${log_name}.log" filePattern="${log_dir}/${log_name}-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz">
++            <PatternLayout>
++                <Pattern>%d{ISO8601} [%t] %-5p %c{1.} - %m%n%throwable{full}</Pattern>
++            </PatternLayout>
++            <Policies>
++                <SizeBasedTriggeringPolicy size="20 MB"/>
++            </Policies>
++            <DefaultRolloverStrategy max="10"/>
++        </RollingFile>
++        <RollingFile name="audit" fileName="${log_dir}/${log_name}-audit.log" filePattern="${log_dir}/${log_name}-audit-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz">
++            <RFC5424Layout enterpriseNumber="28392" includeMDC="true" mdcId="RequestContext" appName="EclipseKura" mdcPrefix="" newLine="true">
++                <LoggerFields>
++                    <KeyValuePair key="thread" value="%t"/>
++                    <KeyValuePair key="priority" value="%p"/>
++                    <KeyValuePair key="category" value="%c"/>
++                    <KeyValuePair key="exception" value="%ex"/>
++                </LoggerFields>
++            </RFC5424Layout>
++            <Policies>
++                <SizeBasedTriggeringPolicy size="20 MB"/>
++            </Policies>
++            <DefaultRolloverStrategy max="10"/>
++        </RollingFile>
++    </Appenders>
++    <Loggers>
++        <Logger name="org.eclipse" level="info" additivity="false">
++            <AppenderRef ref="RollingFile"/>
++        </Logger>
++        <Logger name="AuditLogger" level="trace" additivity="false">
++            <AppenderRef ref="audit"/>
++        </Logger>
++        <Root level="info">
++            <AppenderRef ref="RollingFile"/>
++        </Root>
++    </Loggers>
++</Configuration>
+diff --git a/kura/distrib/src/main/resources/n8-compact/network.interfaces b/kura/distrib/src/main/resources/n8-compact/network.interfaces
+new file mode 100644
+index 000000000..0a356d88d
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/network.interfaces
+@@ -0,0 +1,15 @@
++# /etc/network/interfaces -- configuration file for ifup(8), ifdown(8)
++ 
++# The loopback interface
++auto lo
++iface lo inet loopback
++
++# Wired or wireless interfaces
++auto eth0
++iface eth0 inet dhcp
++
++auto wlan0
++iface wlan0 inet static
++    address 172.16.1.1
++    netmask 255.255.255.0
++
+diff --git a/kura/distrib/src/main/resources/n8-compact/recover_default_config.init b/kura/distrib/src/main/resources/n8-compact/recover_default_config.init
+new file mode 100644
+index 000000000..51dd74262
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/recover_default_config.init
+@@ -0,0 +1,66 @@
++#!/bin/bash
++echo "This script performs rollback to factory default configuration."
++echo "If you run this script, all configuration snapshots, except snapshot_0, will be removed."
++read -r -p "Are you sure? [y/N] " response
++case $response in
++    [yY][eE][sS]|[yY]) 
++        script_dir=$(dirname $0)
++	user_config_dir=$script_dir/../user
++	snapshots_dir=$user_config_dir/snapshots
++	dflt_data_dir=$script_dir/../.data
++	
++	for snapshot_file in "$snapshots_dir"/*
++	do
++	    if [ $snapshot_file != $snapshots_dir"/snapshot_0.xml" ]; then 
++  		echo Removing the $snapshot_file configuration file ...
++		rm -f $snapshot_file
++		if [ "$?" = "0" ]; then
++            	    echo "  done"
++	        fi
++	    fi
++	done
++	
++	echo Copying the $dflt_data_dir/dhcpd-eth0.conf file to the /etc directory ...
++	cp $dflt_data_dir/dhcpd-eth0.conf /etc
++	if [ "$?" = "0" ]; then
++		echo "  done"
++	fi
++
++	echo Copying the $dflt_data_dir/dhcpd-wlan0.conf file to the /etc directory ...
++	cp $dflt_data_dir/dhcpd-wlan0.conf /etc
++	if [ "$?" = "0" ]; then
++                echo "  done"
++        fi
++
++	echo Copying the $dflt_data_dir/hostapd-wlan0.conf file to the /etc directory ...
++	cp $dflt_data_dir/hostapd-wlan0.conf /etc
++	if [ "$?" = "0" ]; then
++                echo "  done"
++        fi
++	
++	echo Copying the $dflt_data_dir/interfaces file to the /etc/network directory ...
++	cp $dflt_data_dir/interfaces /etc/network
++	if [ "$?" = "0" ]; then
++                echo "  done"
++        fi
++
++	echo Copying the $dflt_data_dir/iptables file to the /etc/sysconfig directory ...
++	cp $dflt_data_dir/iptables /etc/sysconfig
++	if [ "$?" = "0" ]; then
++                echo "  done"
++        fi
++
++	echo Copying the $dflt_data_dir/kuranet.conf file to the $user_config_dir directory ...
++	cp $dflt_data_dir/kuranet.conf $user_config_dir
++	if [ "$?" = "0" ]; then
++                echo "  done"
++        fi
++	echo
++	echo "Default configuration has been restored. Please reboot the unit for configuration to take effect."
++        ;;
++    *)
++	echo
++        echo "Configuration rollback aborted."
++        ;;
++esac
++
+diff --git a/kura/distrib/src/main/resources/n8-compact/snapshot_0.xml b/kura/distrib/src/main/resources/n8-compact/snapshot_0.xml
+new file mode 100644
+index 000000000..2ee4d1635
+--- /dev/null
++++ b/kura/distrib/src/main/resources/n8-compact/snapshot_0.xml
+@@ -0,0 +1,687 @@
++<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
++<!--
++
++    Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
++
++    This program and the accompanying materials are made
++    available under the terms of the Eclipse Public License 2.0
++    which is available at https://www.eclipse.org/legal/epl-2.0/
++
++	SPDX-License-Identifier: EPL-2.0
++
++	Contributors:
++	 Eurotech
++
++-->
++<esf:configurations xmlns:ocd="http://www.osgi.org/xmlns/metatype/v1.2.0" xmlns:esf="http://eurotech.com/esf/2.0">
++    <esf:configuration pid="org.eclipse.kura.net.admin.FirewallConfigurationService">
++	<esf:properties>
++	    <esf:property array="false" encrypted="false" name="firewall.open.ports" type="String">
++                <esf:value>22,tcp,,,,,,#;443,tcp,,eth0,,,,#;443,tcp,,wlan0,,,,#;4443,tcp,,eth0,,,,#;4443,tcp,,wlan0,,,,#;1450,tcp,,eth0,,,,#;1450,tcp,,wlan0,,,,#;5002,tcp,127.0.0.1/32,,,,,#;53,udp,,eth0,,,,#;53,udp,,wlan0,,,,#;67,udp,,eth0,,,,#;67,udp,,wlan0,,,,#;8000,tcp,,eth0,,,,#;8000,tcp,,wlan0,,,,#</esf:value>
++            </esf:property>
++	    <esf:property array="false" encrypted="false" name="firewall.port.forwarding" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++	    <esf:property array="false" encrypted="false" name="firewall.nat" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++	</esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.net.admin.NetworkConfigurationService">
++        <esf:properties>
++            <esf:property name="net.interface.wlan0.config.wifi.master.broadcast" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.ip4.dnsServers" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.ip4.dnsServers" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.passDns" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.passphrase" array="false" encrypted="false" type="Password">
++                <esf:value>testKEYS</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.driver" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.autoconnect" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.driver.version" array="false" encrypted="false" type="String">
++                <esf:value>unkown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.virtual" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.mode" array="false" encrypted="false" type="String">
++                <esf:value>INFRA</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.wifi.bitrate" array="false" encrypted="false" type="Long">
++                <esf:value>0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.channel" array="false" encrypted="false" type="String">
++                <esf:value>1 2 3 4 5 6 7 8 9 10 11</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.type" array="false" encrypted="false" type="String">
++                <esf:value>ETHERNET</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.type" array="false" encrypted="false" type="String">
++                <esf:value>LOOPBACK</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.virtual" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.virtual" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.ptp" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.hardwareMode" array="false" encrypted="false" type="String">
++                <esf:value>g</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.securityType" array="false" encrypted="false" type="String">
++                <esf:value>SECURITY_WPA2</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="net.interface.wlan0.config.wifi.master.pairwiseCiphers" type="String">
++                <esf:value>CCMP</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.ip4.prefix" array="false" encrypted="false" type="Short">
++                <esf:value>8</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.firmware.version" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.winsServers" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.mtu" array="false" encrypted="false" type="Integer">
++                <esf:value>16436</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.ip4.broadcast" array="false" encrypted="false" type="String">
++                <esf:value>255.0.0.0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.ip4.status" array="false" encrypted="false" type="String">
++                <esf:value>netIPv4StatusEnabledWAN</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.loopback" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.name" array="false" encrypted="false" type="String">
++                <esf:value>eth0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.wifi.capabilities" array="false" encrypted="false" type="String">
++                <esf:value>CIPHER_TKIP CIPHER_CCMP WPA RSN </esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.broadcast" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.passDns" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.nat.enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.eth.link.up" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.ptp" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.prefix" array="false" encrypted="false" type="Short">
++                <esf:value>24</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.winsServers" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.mtu" array="false" encrypted="false" type="Integer">
++                <esf:value>1500</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.usb.devicePath" array="false" encrypted="false" type="String">
++                <esf:value>1.1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.up" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.ip4.broadcast" array="false" encrypted="false" type="String">
++                <esf:value>255.255.255.0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.rangeStart" array="false" encrypted="false" type="String">
++                <esf:value>172.16.1.100</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.mode" array="false" encrypted="false" type="String">
++                <esf:value>MASTER</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.driver" array="false" encrypted="false" type="String">
++                <esf:value>nl80211</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.type" array="false" encrypted="false" type="String">
++                <esf:value>WIFI</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.driver" array="false" encrypted="false" type="String">
++                <esf:value>nl80211</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.mac" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.usb.vendor.id" array="false" encrypted="false" type="String">
++                <esf:value>0424</esf:value>
++            </esf:property>
++            <esf:property name="net.interfaces" array="false" encrypted="false" type="String">
++                <esf:value>lo,wlan0,eth0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.securityType" array="false" encrypted="false" type="String">
++                <esf:value>NONE</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.ip4.address" array="false" encrypted="false" type="String">
++                <esf:value>172.16.1.1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.ip4.address" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.domains" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.ip4.address" array="false" encrypted="false" type="String">
++                <esf:value>127.0.0.1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.autoconnect" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.mac" array="false" encrypted="false" type="String">
++                <esf:value>00:00:00:00:00:00</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.loopback" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.maxLeaseTime" array="false" encrypted="false" type="Integer">
++                <esf:value>7200</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.ip4.gateway" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.usb.product.id" array="false" encrypted="false" type="String">
++                <esf:value>ec00</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.rangeStart" array="false" encrypted="false" type="String">
++                <esf:value>172.16.0.100</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.state" array="false" encrypted="false" type="String">
++                <esf:value>DISCONNECTED</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.firmware.version" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.ip4.dnsServers" array="false" encrypted="false" type="String">
++                <esf:value>127.0.0.1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.name" array="false" encrypted="false" type="String">
++                <esf:value>lo</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.mac" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.name" array="false" encrypted="false" type="String">
++                <esf:value>wlan0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.driver.version" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.state" array="false" encrypted="false" type="String">
++                <esf:value>ACTIVATED</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.defaultLeaseTime" array="false" encrypted="false" type="Integer">
++                <esf:value>7200</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.driver" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.ptp" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="modified.interface.names" array="false" encrypted="false" type="String">
++                <esf:value>wlan0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.ip4.address" array="false" encrypted="false" type="String">
++                <esf:value>127.0.0.1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpClient4.enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.dhcpServer4.rangeEnd" array="false" encrypted="false" type="String">
++                <esf:value>172.16.0.110</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.state" array="false" encrypted="false" type="String">
++                <esf:value>ACTIVATED</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.usb.busNumber" array="false" encrypted="false" type="String">
++                <esf:value>1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.mode" array="false" encrypted="false" type="String">
++                <esf:value>MASTER</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.driver" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.radioMode" array="false" encrypted="false" type="String">
++                <esf:value>RADIO_MODE_80211g</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.rangeEnd" array="false" encrypted="false" type="String">
++                <esf:value>172.16.1.110</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.up" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.dhcpClient4.enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.mtu" array="false" encrypted="false" type="Integer">
++                <esf:value>1500</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.ip4.gateway" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.ip4.status" array="false" encrypted="false" type="String">
++                <esf:value>netIPv4StatusEnabledLAN</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.maxLeaseTime" array="false" encrypted="false" type="Integer">
++                <esf:value>7200</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.ssid" array="false" encrypted="false" type="String">
++                <esf:value>kura_gateway_B8:27:EB:2B:4E:35</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.config.autoconnect" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.usb.product.name" array="false" encrypted="false"/>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.prefix" array="false" encrypted="false" type="Short">
++                <esf:value>24</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.master.channel" array="false" encrypted="false" type="String">
++                <esf:value>1</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.lo.config.ip4.dnsServers" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.usb.vendor.name" array="false" encrypted="false"/>
++            <esf:property name="net.interface.eth0.loopback" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.ip4.prefix" array="false" encrypted="false" type="Short">
++                <esf:value>24</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.passphrase" array="false" encrypted="false" type="Password">
++                <esf:value>wepKeyInfraWlan0</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.ip4.dnsServers" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.domains" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpClient4.enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.ssid" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.wifi.infra.hardwareMode" array="false" encrypted="false" type="String">
++                <esf:value></esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.dhcpServer4.defaultLeaseTime" array="false" encrypted="false" type="Integer">
++                <esf:value>7200</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.config.ip4.status" array="false" encrypted="false" type="String">
++                <esf:value>netIPv4StatusEnabledLAN</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.firmware.version" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.eth0.up" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="net.interface.wlan0.driver.version" array="false" encrypted="false" type="String">
++                <esf:value>unknown</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.watchdog.WatchdogService">
++        <esf:properties>
++            <esf:property name="enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="service.pid" array="false" encrypted="false" type="String">
++                <esf:value>org.eclipse.kura.watchdog.WatchdogService</esf:value>
++            </esf:property>
++            <esf:property name="pingInterval" array="false" encrypted="false" type="Integer">
++                <esf:value>10000</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.clock.ClockService">
++        <esf:properties>
++            <esf:property name="enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="clock.ntp.port" array="false" encrypted="false" type="Integer">
++                <esf:value>123</esf:value>
++            </esf:property>
++            <esf:property name="clock.ntp.refresh-interval" array="false" encrypted="false" type="Integer">
++                <esf:value>3600</esf:value>
++            </esf:property>
++            <esf:property name="clock.provider" array="false" encrypted="false" type="String">
++                <esf:value>java-ntp</esf:value>
++            </esf:property>
++            <esf:property name="clock.set.hwclock" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property name="clock.ntp.timeout" array="false" encrypted="false" type="Integer">
++                <esf:value>10000</esf:value>
++            </esf:property>
++            <esf:property name="clock.ntp.host" array="false" encrypted="false" type="String">
++                <esf:value>0.pool.ntp.org</esf:value>
++            </esf:property>
++            <esf:property name="service.pid" array="false" encrypted="false" type="String">
++                <esf:value>org.eclipse.kura.clock.ClockService</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.db.H2DbService">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="db.user" type="String">
++                <esf:value>SA</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="db.connection.pool.max.size" type="Integer">
++                <esf:value>10</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="db.connector.url" type="String">
++                <esf:value>jdbc:h2:mem:kuradb</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.core.db.H2DbService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="db.checkpoint.interval.seconds" type="Integer">
++                <esf:value>900</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>org.eclipse.kura.db.H2DbService</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.core.data.transport.mqtt.MqttDataTransport">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="in-flight.persistence" type="String">
++                <esf:value>memory</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="clean-session" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="lwt.retain" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="protocol-version" type="Integer">
++                <esf:value>4</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.core.data.transport.mqtt.MqttDataTransport</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="timeout" type="Integer">
++                <esf:value>20</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>org.eclipse.kura.core.data.transport.mqtt.MqttDataTransport</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="broker-url" type="String">
++                <esf:value>mqtt://broker-url:1883/</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="keep-alive" type="Integer">
++                <esf:value>30</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="topic.context.account-name" type="String">
++                <esf:value>account-name</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="lwt.topic" type="String">
++                <esf:value>$EDC/#account-name/#client-id/MQTT/LWT</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="lwt.qos" type="Integer">
++                <esf:value>0</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="ssl.hostname.verification" type="String">
++                <esf:value>use-ssl-service-config</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.cloud.service.factory.pid" type="String">
++                <esf:value>org.eclipse.kura.core.cloud.factory.DefaultCloudServiceFactory</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="username" type="String">
++                <esf:value>username</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.data.DataService">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="store.purge-age" type="Integer">
++                <esf:value>60</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="in-flight-messages.congestion-timeout" type="Integer">
++                <esf:value>0</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="enable.rate.limit" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="in-flight-messages.max-number" type="Integer">
++                <esf:value>9</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.data.DataService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="connection.recovery.max.failures" type="Integer">
++                <esf:value>10</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="disconnect.quiesce-timeout" type="Integer">
++                <esf:value>10</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>org.eclipse.kura.data.DataService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="store.housekeeper-interval" type="Integer">
++                <esf:value>900</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="connect.auto-on-startup" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="rate.limit.time.unit" type="String">
++                <esf:value>SECONDS</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="rate.limit.average" type="Integer">
++                <esf:value>1</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="store.db.service.pid" type="String">
++                <esf:value>org.eclipse.kura.db.H2DbService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="DataTransportService.target" type="String">
++                <esf:value>(kura.service.pid=org.eclipse.kura.core.data.transport.mqtt.MqttDataTransport)</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="connect.retry-interval" type="Integer">
++                <esf:value>60</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="enable.recovery.on.connection.failure" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="rate.limit.burst.size" type="Integer">
++                <esf:value>1</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.cloud.service.factory.pid" type="String">
++                <esf:value>org.eclipse.kura.core.cloud.factory.DefaultCloudServiceFactory</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="in-flight-messages.republish-on-new-session" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="store.capacity" type="Integer">
++                <esf:value>1000</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.position.PositionService">
++        <esf:properties>
++            <esf:property name="port" array="false" encrypted="false" type="String">
++                <esf:value>1-3.2</esf:value>
++            </esf:property>
++            <esf:property name="enabled" array="false" encrypted="false" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property name="parity" array="false" encrypted="false" type="Integer">
++                <esf:value>0</esf:value>
++            </esf:property>
++            <esf:property name="stopBits" array="false" encrypted="false" type="Integer">
++                <esf:value>1</esf:value>
++            </esf:property>
++            <esf:property name="baudRate" array="false" encrypted="false" type="Integer">
++                <esf:value>115200</esf:value>
++            </esf:property>
++            <esf:property name="service.pid" array="false" encrypted="false" type="String">
++                <esf:value>org.eclipse.kura.position.PositionService</esf:value>
++            </esf:property>
++            <esf:property name="bitsPerWord" array="false" encrypted="false" type="Integer">
++                <esf:value>8</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.cloud.CloudService">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="topic.control-prefix" type="String">
++                <esf:value>$EDC</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="birth.cert.policy" type="String">
++                <esf:value>birth-connect-reconnect</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="device.custom-name" type="String">
++                <esf:value>Raspberry Pi 2</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="device.display-name" type="String">
++                <esf:value>device-name</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="payload.encoding" type="String">
++                <esf:value>kura-protobuf</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="republish.mqtt.birth.cert.on.modem.detect" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.cloud.CloudService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>org.eclipse.kura.cloud.CloudService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="enable.default.subscriptions" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="republish.mqtt.birth.cert.on.gps.lock" type="Boolean">
++                <esf:value>false</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="encode.gzip" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="DataService.target" type="String">
++                <esf:value>(kura.service.pid=org.eclipse.kura.data.DataService)</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.cloud.service.factory.pid" type="String">
++                <esf:value>org.eclipse.kura.core.cloud.factory.DefaultCloudServiceFactory</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.ssl.SslManagerService">
++        <esf:properties>
++            <esf:property name="ssl.default.protocol" array="false" encrypted="false" type="String">
++                <esf:value>TLSv1.2</esf:value>
++            </esf:property>
++            <esf:property name="ssl.hostname.verification" array="false" encrypted="false" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="KeystoreService.target" type="String">
++                <esf:value>(kura.service.pid=SSLKeystore)</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.ssl.SslManagerService</esf:value>
++            </esf:property>
++            <esf:property name="service.ranking" array="false" encrypted="false" type="Integer">
++                <esf:value>100</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.http.server.manager.HttpService">
++        <esf:properties>
++            <esf:property array="true" encrypted="false" name="https.ports" type="Integer">
++                <esf:value>443</esf:value>
++            </esf:property>
++            <esf:property array="true" encrypted="false" name="https.client.auth.ports" type="Integer">
++                <esf:value>4443</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="KeystoreService.target" type="String">
++                <esf:value>(kura.service.pid=HttpsKeystore)</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>org.eclipse.kura.http.server.manager.HttpService</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.pid" type="String">
++                <esf:value>org.eclipse.kura.http.server.manager.HttpService</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="org.eclipse.kura.internal.useradmin.store.RoleRepositoryStoreImpl">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="users.config" type="String">
++                <esf:value>[{"name":"kura.user.admin","credentials":{"kura.password":"jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg="}},{"name":"kura.user.appadmin","credentials":{"kura.password":"3hPckF8Zc+IF3pVineBvck3zJERUl8itosySULE1hpM="}},{"name":"kura.user.netadmin","credentials":{"kura.password":"3PgDKAMCxgRWBHiT1dEBS97bPqt7xckgdwrADJiDoWg="}}]</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="groups.config" type="String">
++                <esf:value>[{"name":"kura.permission.kura.wires.admin","basicMembers":["kura.user.appadmin"]},{"name":"kura.permission.kura.admin","basicMembers":["kura.user.admin"]},{"name":"kura.permission.kura.cloud.connection.admin","basicMembers":["kura.user.appadmin","kura.user.netadmin"]},{"name":"kura.permission.kura.device","basicMembers":["kura.user.netadmin"]},{"name":"kura.permission.kura.packages.admin","basicMembers":["kura.user.appadmin"]},{"name":"kura.permission.kura.network.admin","basicMembers":["kura.user.netadmin"]},{"name":"kura.permission.rest.assets"}]</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="HttpsKeystore">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="keystore.path" type="String">
++                <esf:value>/opt/eclipse/kura/user/security/httpskeystore.ks</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="true" name="keystore.password" type="Password">
++                <esf:value>Y2hhbmdlaXQ=</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="randomize.password" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.core.keystore.FilesystemKeystoreServiceImpl</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>HttpsKeystore</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++    <esf:configuration pid="SSLKeystore">
++        <esf:properties>
++            <esf:property array="false" encrypted="false" name="keystore.path" type="String">
++                <esf:value>/opt/eclipse/kura/user/security/cacerts.ks</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="true" name="keystore.password" type="Password">
++                <esf:value>Y2hhbmdlaXQ=</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="randomize.password" type="Boolean">
++                <esf:value>true</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="service.factoryPid" type="String">
++                <esf:value>org.eclipse.kura.core.keystore.FilesystemKeystoreServiceImpl</esf:value>
++            </esf:property>
++            <esf:property array="false" encrypted="false" name="kura.service.pid" type="String">
++                <esf:value>SSLKeystore</esf:value>
++            </esf:property>
++        </esf:properties>
++    </esf:configuration>
++</esf:configurations>
+-- 
+2.34.1
+
