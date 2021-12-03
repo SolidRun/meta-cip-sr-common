@@ -1,0 +1,47 @@
+From b6dca6902ccaded439433fd80152d3d0e14a35b2 Mon Sep 17 00:00:00 2001
+From: Eric Bree <eric@merkbree.com>
+Date: Thu, 25 Nov 2021 09:00:57 -0500
+Subject: [PATCH] ca-certificates: change to support openjdk-11
+
+---
+ .../ca-certificates-java/ca-certificates-java.hook.in         | 1 +
+ .../ca-certificates-java/ca-certificates-java_20180516.bb     | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/recipes-core/ca-certificates-java/ca-certificates-java/ca-certificates-java.hook.in b/recipes-core/ca-certificates-java/ca-certificates-java/ca-certificates-java.hook.in
+index 89c764f..0bba6f8 100755
+--- a/recipes-core/ca-certificates-java/ca-certificates-java/ca-certificates-java.hook.in
++++ b/recipes-core/ca-certificates-java/ca-certificates-java/ca-certificates-java.hook.in
+@@ -25,6 +25,7 @@ fi
+ 
+ for JAVA in icedtea7-native/bin/java \
+             openjdk-8-native/bin/java openjdk-8/bin/java openjre-8/bin/java \
++            openjdk-11-native/bin/java openjdk-11/bin/java openjre-11/bin/java \
+          ; do
+     if [ -x "${jvm_libdir}/${JAVA}" ] ; then
+         JAVA="${jvm_libdir}/${JAVA}"
+diff --git a/recipes-core/ca-certificates-java/ca-certificates-java_20180516.bb b/recipes-core/ca-certificates-java/ca-certificates-java_20180516.bb
+index feaa7dc..f86b096 100644
+--- a/recipes-core/ca-certificates-java/ca-certificates-java_20180516.bb
++++ b/recipes-core/ca-certificates-java/ca-certificates-java_20180516.bb
+@@ -14,7 +14,7 @@ DEPENDS = "virtual/javac-native fastjar-native"
+ # We can't use virtual/javac-native, because that would create a
+ # keystore that can't be read on the target (as virtual/javac-native
+ # usually is either too old, or plain incompatible with this)
+-PACKAGE_WRITE_DEPS += "openjdk-8-native"
++PACKAGE_WRITE_DEPS += "openjdk-11-native"
+ 
+ SRC_URI = "\
+ 	git://salsa.debian.org/java-team/ca-certificates-java.git \
+@@ -33,7 +33,7 @@ JARFILENAME = "${BPN}.jar"
+ 
+ python () {
+     runtime = d.getVar("PREFERRED_RPROVIDER_java2-runtime") or ""
+-    if not runtime in ("openjdk-8", "openjre-8"):
++    if not runtime in ("openjdk-11", "openjre-11"):
+         raise bb.parse.SkipRecipe("PREFERRED_RPROVIDER_java2-runtime '%s' unsupported" % runtime)
+ }
+ 
+-- 
+2.20.1
+
