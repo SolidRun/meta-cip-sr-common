@@ -12,14 +12,16 @@ SRC_URI = " \
     file://kura.service \
     file://polkit.kura \
     file://sudoers.kurad \
+    file://0001-add-n8-compact.patch \
 "
 SRCREV_SolidSense-V1 = "789c7e7fa6990f94e5a3c3bea5de95bb7b1e687b"
-SRCREV_kura = "2fe9e672f3488654afd651caf8a09769f1aa623b"
+SRCREV_kura = "7f9936077b8bc96170a180bf011c6ccc7f0466f4"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
 KURA_VERSION = "${PV}"
 KURA_VERSION_PATH = "/opt/eclipse/kura_${KURA_VERSION}_solid_sense"
 KURA_PATH = "/opt/eclipse/kura"
+KURA_PROFILE = "${@bb.utils.contains('MACHINE', 'imx8mnc', 'n8-compact', 'raspberry-pi-2', d)}"
 
 SYSTEMD_SERVICE_${PN} = "kura.service firewall.service"
 SYSTEMD_AUTO_ENABLE_${PN} = "enable"
@@ -27,17 +29,17 @@ SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 DEPENDS = " \
     maven-native \
     openssl \
-    openjdk-8-native \
+    openjdk-11-native \
 "
 RDEPENDS_${PN} = " \
     bash \
     ca-certificates-java \
-    openjdk-8 \
+    openjdk-11 \
     openssl \
     python3 \
 "
 
-JAVA_HOME="${WORKDIR}/recipe-sysroot-native/usr/lib/jvm/openjdk-8-native"
+JAVA_HOME="${WORKDIR}/recipe-sysroot-native/usr/lib/jvm/openjdk-11-native"
 
 inherit systemd useradd
 
@@ -68,9 +70,9 @@ do_install () {
     # Install Kura from zip file
     install -d ${D}/opt/eclipse
     cd ${D}/opt/eclipse
-    unzip ${S-KURA}/kura/distrib/target/kura_${KURA_VERSION}_raspberry-pi-2.zip
-    mv kura_${KURA_VERSION}_raspberry-pi-2 kura_${KURA_VERSION}_solid_sense
-    ln -s ${KURA_VERSION_PATH} ${D}/opt/eclipse/kura_${KURA_VERSION}_raspberry-pi-2
+    unzip ${S-KURA}/kura/distrib/target/kura_${KURA_VERSION}_${KURA_PROFILE}.zip
+    mv kura_${KURA_VERSION}_${KURA_PROFILE} kura_${KURA_VERSION}_solid_sense
+    ln -s ${KURA_VERSION_PATH} ${D}/opt/eclipse/kura_${KURA_VERSION}_${KURA_PROFILE}
     ln -s ${KURA_VERSION_PATH} ${D}/opt/eclipse/kura
 
     # Mimic Kura kura_install.sh script
@@ -186,6 +188,7 @@ FILES_${PN} = " \
   /opt/SolidSense \
   /opt/eclipse/kura \
   /opt/eclipse/kura_5.0.0_raspberry-pi-2 \
+  /opt/eclipse/kura_5.0.0_n8-compact \
   /opt/eclipse/kura_5.0.0_solid_sense \
   /opt/eclipse/kura_5.0.0_solid_sense/notice.html \
   /opt/eclipse/kura_5.0.0_solid_sense/data \
