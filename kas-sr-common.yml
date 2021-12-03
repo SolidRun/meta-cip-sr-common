@@ -75,7 +75,7 @@ local_conf_header:
     #     Java
     PREFERRED_PROVIDER_virtual/java-native = "cacao-native"
     PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
-    PREFERRED_RPROVIDER_java2-runtime = "openjdk-8"
+    PREFERRED_RPROVIDER_java2-runtime = "openjdk-11"
 
     # Mender
     INHERIT += "mender-full"
