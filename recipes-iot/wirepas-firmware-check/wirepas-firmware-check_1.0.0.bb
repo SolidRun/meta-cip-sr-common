@@ -11,7 +11,7 @@ SRC_URI = " \
     file://LICENSE \
 "
 
-SRCREV_SolidSense-V1 = "789c7e7fa6990f94e5a3c3bea5de95bb7b1e687b"
+SRCREV_SolidSense-V1 = "4d2a02b732c65fd286279f047afb0196f6649f20"
 S = "${WORKDIR}/SolidSense-V1"
 
 DEPENDS = " \

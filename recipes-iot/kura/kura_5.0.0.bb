@@ -14,7 +14,7 @@ SRC_URI = " \
     file://sudoers.kurad \
     file://0001-add-n8-compact.patch \
 "
-SRCREV_SolidSense-V1 = "789c7e7fa6990f94e5a3c3bea5de95bb7b1e687b"
+SRCREV_SolidSense-V1 = "4d2a02b732c65fd286279f047afb0196f6649f20"
 SRCREV_kura = "7f9936077b8bc96170a180bf011c6ccc7f0466f4"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
