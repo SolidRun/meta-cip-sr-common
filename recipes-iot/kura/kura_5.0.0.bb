@@ -13,6 +13,7 @@ SRC_URI = " \
     file://polkit.kura \
     file://sudoers.kurad \
     file://0001-add-n8-compact.patch \
+    file://0002-Updating-log4j-version-to-2.15.0.patch \
 "
 SRCREV_SolidSense-V1 = "4d2a02b732c65fd286279f047afb0196f6649f20"
 SRCREV_kura = "7f9936077b8bc96170a180bf011c6ccc7f0466f4"
