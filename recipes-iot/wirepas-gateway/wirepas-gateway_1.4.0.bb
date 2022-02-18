@@ -12,9 +12,9 @@ SRC_URI = " \
     git://git@github.com/SolidRun/SolidSense-V1.git;protocol=ssh;branch=master;destsuffix=SolidSense-V1;name=SolidSense-V1 \
 "
 
-SRCREV_gateway = "3de76a3837cc1ff33647d34ff348060743c3a687"
+SRCREV_gateway = "e05664ad38d7c79194b043dc8fe513a5b15d8fde"
 SRCREV_c-mesh-api = "ce17a472988c5c1195db4d6427a546ed17c802da"
-SRCREV_SolidSense-V1 = "4d2a02b732c65fd286279f047afb0196f6649f20"
+SRCREV_SolidSense-V1 = "e01f8420fd3717a7e7ee3719969b4e268e41797e"
 S = "${WORKDIR}/git"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 KURA_VERSION ?= "5.0.0"

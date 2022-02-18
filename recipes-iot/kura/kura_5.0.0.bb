@@ -15,7 +15,7 @@ SRC_URI = " \
     file://0001-add-n8-compact.patch \
     file://0002-Updating-log4j-version-to-2.15.0.patch \
 "
-SRCREV_SolidSense-V1 = "4d2a02b732c65fd286279f047afb0196f6649f20"
+SRCREV_SolidSense-V1 = "e01f8420fd3717a7e7ee3719969b4e268e41797e"
 SRCREV_kura = "7f9936077b8bc96170a180bf011c6ccc7f0466f4"
 S-V1 = "${WORKDIR}/SolidSense-V1"
 S-KURA = "${WORKDIR}/kura-${PV}"
